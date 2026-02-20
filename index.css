@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+}
+
+@layer components {
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .btn-green {
+    @apply bg-emerald-400 text-black font-bold cursor-pointer transition-all duration-150;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .btn-green:hover { @apply bg-emerald-300; }
+
+  .card {
+    @apply bg-zinc-900 border border-zinc-800 rounded-lg;
+  }
+
+  .input {
+    @apply w-full bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2 text-sm outline-none transition-colors;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .input:focus { @apply border-emerald-400; }
+
+  .overlay {
+    @apply fixed inset-0 bg-black/80 flex items-center justify-center z-50;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal {
+    @apply bg-zinc-950 border border-zinc-800 rounded-xl p-8 w-full max-h-[90vh] overflow-y-auto;
+    max-width: 520px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* MOBILE RESPONSIVE STYLES                                            */
+/* ══════════════════════════════════════════════════════════════════ */
+
+/* Mobile: Stack sidebar and main vertically with tabs */
+@media (max-width: 768px) {
+  /* Main container becomes vertical stack */
+  body > div > div:first-child {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Sidebar: Full width, no fixed width */
+  aside {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border-right: none !important;
+    border-bottom: 3px solid #444 !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Main content: Full width, scrollable */
+  main {
+    width: 100% !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Reduce sidebar height for mobile */
+  aside > div:first-child {
+    padding: 12px 16px !important;
+  }
+  
+  aside > div:first-child p:first-child {
+    font-size: 9px !important;
+  }
+  
+  aside > div:first-child p:nth-child(2) {
+    font-size: 24px !important;
+  }
+  
+  /* Make calendar grid more compact on mobile */
+  main > div > div > div > div {
+    gap: 8px !important;
+  }
+  
+  /* Adjust header on mobile */
+  main > div:first-child {
+    padding: 0 16px !important;
+    height: 60px !important;
+  }
+  
+  main > div:first-child button {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Make modals full width on mobile */
+  .modal {
+    width: 95% !important;
+    margin: 16px !important;
+    padding: 20px !important;
+  }
+  
+  /* Compact calendar cells on mobile */
+  main > div > div > div > div > div > div {
+    font-size: 11px !important;
+    padding: 4px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* TABLET STYLES (iPad, etc)                                           */
+/* ══════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Sidebar: Reduce width for tablets */
+  aside {
+    width: 280px !important;
+    min-width: 280px !important;
+  }
+  
+  /* Adjust main padding */
+  main > div:first-child {
+    padding: 0 24px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* SMALL MOBILE (phones in portrait)                                   */
+/* ══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  /* Even more compact on small screens */
+  aside > div:first-child p:nth-child(2) {
+    font-size: 20px !important;
+  }
+  
+  /* Stack calendar grid vertically if needed */
+  main > div > div {
+    padding: 12px !important;
+  }
+  
+  /* Reduce font sizes */
+  main > div:first-child h1 {
+    font-size: 18px !important;
+  }
+  
+  main > div:first-child button {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+}
+
