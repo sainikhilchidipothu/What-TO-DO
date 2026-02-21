@@ -1042,25 +1042,25 @@ export default function App() {
         <div style={{
           position:'fixed',inset:0,zIndex:200,background:'#1a1a1a',
           display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-          padding:40
+          padding:24
         }}>
-          <div style={{maxWidth:600,width:'100%',textAlign:'center'}}>
-            <div style={{fontSize:64,marginBottom:24}}>🎯</div>
-            <h1 style={{...mono,fontSize:32,fontWeight:900,letterSpacing:4,color:'#fff',marginBottom:16}}>
+          <div style={{maxWidth:520,width:'100%',textAlign:'center'}}>
+            <div style={{fontSize:48,marginBottom:16}}>🎯</div>
+            <h1 style={{...mono,fontSize:26,fontWeight:900,letterSpacing:2,color:'#fff',marginBottom:12}}>
               WELCOME TO WHAT-TO-DO
             </h1>
-            <p style={{fontSize:16,color:'#aaa',lineHeight:1.6,marginBottom:40}}>
+            <p style={{fontSize:15,color:'#aaa',lineHeight:1.5,marginBottom:28}}>
               Let's get started! First, set your target goal date.<br/>
               This will help you track your progress and stay motivated.
             </p>
             
-            <div style={{marginBottom:40}}>
-              <p style={{...mono,fontSize:11,letterSpacing:4,color:'#666',marginBottom:12,fontWeight:'bold',textAlign:'left'}}>
+            <div style={{marginBottom:28}}>
+              <p style={{...mono,fontSize:10,letterSpacing:3,color:'#666',marginBottom:10,fontWeight:'bold',textAlign:'left'}}>
                 SELECT YOUR GOAL DATE
               </p>
               <CalPicker value={firstTimeGoalDate} onChange={setFirstTimeGoalDate} />
               {firstTimeGoalDate && (
-                <p style={{...mono,fontSize:14,color:'#22c55e',marginTop:16,fontWeight:'bold'}}>
+                <p style={{...mono,fontSize:13,color:'#22c55e',marginTop:12,fontWeight:'bold'}}>
                   {daysLeft(firstTimeGoalDate)} days from today
                 </p>
               )}
@@ -1070,15 +1070,15 @@ export default function App() {
               onClick={completeFirstTimeSetup}
               disabled={!firstTimeGoalDate}
               style={{
-                padding:'18px 48px',
+                padding:'14px 40px',
                 background:firstTimeGoalDate?'#fff':'#333',
                 color:firstTimeGoalDate?'#000':'#666',
                 border:'none',
-                borderRadius:10,
+                borderRadius:8,
                 cursor:firstTimeGoalDate?'pointer':'not-allowed',
                 ...mono,
-                fontSize:14,
-                letterSpacing:4,
+                fontSize:13,
+                letterSpacing:3,
                 fontWeight:900,
                 transition:'all 0.15s'
               }}
@@ -1883,16 +1883,16 @@ function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                 if (hasJournal) tooltipLines.push('📝 Journal entry')
                 const tooltip = tooltipLines.length > 0 ? `${k}\n${tooltipLines.join(' · ')}` : k
                 
-                // Vacation: dimmed + gray border
+                // Vacation: dimmed + gray border, NO HOVER PREVIEW
                 if (isVac) return (
                   <div key={d} 
-                    onClick={()=>onMonth(m)}
+                    onClick={(e)=>{e.stopPropagation();onHoverEnd?.();onMonth(m)}}
                     onMouseEnter={(e) => onHover?.(k, {x: e.clientX + 15, y: e.clientY + 15})}
                     onMouseLeave={() => onHoverEnd?.()}
                     onMouseMove={(e) => onHover?.(k, {x: e.clientX + 15, y: e.clientY + 15})}
                     style={{
                       borderRadius:5,aspectRatio:'1',display:'flex',alignItems:'center',justifyContent:'center',
-                      background:'#1a1a1a',border:'2px solid #555',opacity:0.4,position:'relative',cursor:'pointer'
+                      background:'#1a1a1a',border:'1px solid #555',opacity:0.5,position:'relative',cursor:'pointer'
                     }}>
                     <span style={{...mono,fontSize:13,color:'#999',fontWeight:'bold'}}>{d}</span>
                   </div>
