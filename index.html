@@ -8,7 +8,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- Mobile/Tablet Blocker -->
+    <div class="mobile-blocker">
+      <div style="max-width: 420px;">
+        <div style="font-size: 72px; margin-bottom: 32px;">💻</div>
+        <h1 style="font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 900; margin-bottom: 20px; letter-spacing: 3px; color: #fff;">
+          DESKTOP ONLY
+        </h1>
+        <p style="font-family: 'Inter', sans-serif; font-size: 17px; color: #aaa; line-height: 1.7; margin-bottom: 32px;">
+          What-TO-DO is optimized for desktop screens.<br/>
+          Please open this application on a computer with a screen width of at least <strong style="color: #fff;">1024px</strong>.
+        </p>
+        <div style="background: #1a1a1a; border: 2px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #666; letter-spacing: 2px; margin-bottom: 8px;">
+            CURRENT SCREEN WIDTH
+          </p>
+          <p style="font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: bold; letter-spacing: 2px;">
+            <span id="screen-width" style="color: #ef4444;">---</span><span style="color: #666; font-size: 20px;">px</span>
+          </p>
+        </div>
+        <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #555; line-height: 1.6;">
+          Need at least <strong style="color: #22c55e;">1024px</strong> to use the app.
+        </p>
+      </div>
+    </div>
+
+    <!-- Main App -->
     <div id="root"></div>
+    
+    <script>
+      // Update screen width display in real-time
+      function updateScreenWidth() {
+        const widthEl = document.getElementById('screen-width');
+        if (widthEl) {
+          const width = window.innerWidth;
+          widthEl.textContent = width;
+          widthEl.style.color = width >= 1024 ? '#22c55e' : '#ef4444';
+        }
+      }
+      updateScreenWidth();
+      window.addEventListener('resize', updateScreenWidth);
+    </script>
+    
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
