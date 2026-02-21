@@ -657,6 +657,13 @@ export default function App() {
   // Undo system
   const [undoItem, setUndoItem] = useState(null) // {type, item, timer}
   const undoTimerRef = useRef(null)
+  
+  // First-time setup state
+  const [showFirstTimeSetup, setShowFirstTimeSetup] = useState(() => {
+    const hasData = localStorage.getItem(STORAGE_KEY)
+    return !hasData
+  })
+  const [firstTimeGoalDate, setFirstTimeGoalDate] = useState('')
 
   // Habit form
   const [hName, setHName] = useState('')
@@ -953,6 +960,18 @@ export default function App() {
 
   // ── Target ─────────────────────────────────────────────────────────────────
   const saveTarget = () => { setState({targetDate:targetPick}); close(); toast$('Target updated ✓') }
+  
+  // ── First-time setup ───────────────────────────────────────────────────────
+  const completeFirstTimeSetup = () => {
+    if (!firstTimeGoalDate) {
+      toast$('Please select a goal date', 'err')
+      return
+    }
+    
+    setState(prev => ({...prev, targetDate: firstTimeGoalDate}))
+    setShowFirstTimeSetup(false)
+    toast$('Welcome to What-TO-DO! 🎉')
+  }
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const now = new Date()
@@ -1018,8 +1037,60 @@ export default function App() {
   return (
     <div style={{display:'flex',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:'Inter,sans-serif',overflow:'hidden'}}>
 
+      {/* ── FIRST-TIME SETUP ── */}
+      {showFirstTimeSetup && (
+        <div style={{
+          position:'fixed',inset:0,zIndex:200,background:'#1a1a1a',
+          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+          padding:40
+        }}>
+          <div style={{maxWidth:600,width:'100%',textAlign:'center'}}>
+            <div style={{fontSize:64,marginBottom:24}}>🎯</div>
+            <h1 style={{...mono,fontSize:32,fontWeight:900,letterSpacing:4,color:'#fff',marginBottom:16}}>
+              WELCOME TO WHAT-TO-DO
+            </h1>
+            <p style={{fontSize:16,color:'#aaa',lineHeight:1.6,marginBottom:40}}>
+              Let's get started! First, set your target goal date.<br/>
+              This will help you track your progress and stay motivated.
+            </p>
+            
+            <div style={{marginBottom:40}}>
+              <p style={{...mono,fontSize:11,letterSpacing:4,color:'#666',marginBottom:12,fontWeight:'bold',textAlign:'left'}}>
+                SELECT YOUR GOAL DATE
+              </p>
+              <CalPicker value={firstTimeGoalDate} onChange={setFirstTimeGoalDate} />
+              {firstTimeGoalDate && (
+                <p style={{...mono,fontSize:14,color:'#22c55e',marginTop:16,fontWeight:'bold'}}>
+                  {daysLeft(firstTimeGoalDate)} days from today
+                </p>
+              )}
+            </div>
+            
+            <button 
+              onClick={completeFirstTimeSetup}
+              disabled={!firstTimeGoalDate}
+              style={{
+                padding:'18px 48px',
+                background:firstTimeGoalDate?'#fff':'#333',
+                color:firstTimeGoalDate?'#000':'#666',
+                border:'none',
+                borderRadius:10,
+                cursor:firstTimeGoalDate?'pointer':'not-allowed',
+                ...mono,
+                fontSize:14,
+                letterSpacing:4,
+                fontWeight:900,
+                transition:'all 0.15s'
+              }}
+            >
+              GET STARTED
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── INTRO ── */}
-      {intro && (
+      {intro && !showFirstTimeSetup && (
         <div style={{
           position:'fixed',inset:0,zIndex:100,background:'#1a1a1a',
           display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
