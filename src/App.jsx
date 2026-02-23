@@ -104,7 +104,7 @@ function DayPreviewCard({ dateKey, state, position }) {
       left:position.x,
       top:position.y,
       background:'#222',
-      border:'4px solid #666',
+      border:'2px solid #666',
       borderRadius:12,
       padding:16,
       minWidth:240,
@@ -200,7 +200,7 @@ function UndoToast({ item, onUndo, onDismiss }) {
       bottom:24,
       right:24,
       background:'#1a1a1a',
-      border:'4px solid #ef4444',
+      border:'2px solid #ef4444',
       borderRadius:12,
       padding:'18px 22px',
       zIndex:300,
@@ -394,7 +394,7 @@ function TaskVacationWarning({ onClose, onConfirm, taskDate }) {
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background:'#1a1a1a',
-        border:'4px solid #eab308',
+        border:'2px solid #eab308',
         borderRadius:16,
         padding:32,
         maxWidth:480
@@ -500,7 +500,7 @@ function WarningModal({ onClose, onConfirm, taskCount }) {
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background:'#1a1a1a',
-        border:'4px solid #ef4444',
+        border:'2px solid #ef4444',
         borderRadius:16,
         padding:32,
         maxWidth:480
@@ -605,7 +605,7 @@ function CalPicker({ value, onChange, label, minDate }) {
 }
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
-const mono    = { fontFamily:'JetBrains Mono,monospace' }
+const mono    = { fontFamily: "'Epilogue', sans-serif" }
 const inputSt = { width:'100%', background:'#111', border:'1px solid #333', color:'#e5e5e5', borderRadius:6, padding:'10px 12px', fontSize:12, outline:'none', ...mono, boxSizing:'border-box' }
 const selectSt= { background:'#111', border:'1px solid #333', color:'#999', borderRadius:4, padding:'4px 6px', fontSize:10, outline:'none', ...mono, cursor:'pointer' }
 const emptyTxt= { ...mono, fontSize:10, color:'#2a2a2a', padding:'14px 16px', textAlign:'center', letterSpacing:2 }
@@ -664,6 +664,10 @@ export default function App() {
     return !hasData
   })
   const [firstTimeGoalDate, setFirstTimeGoalDate] = useState('')
+  
+  // Task due warning state
+  const [urgentTasks, setUrgentTasks] = useState([])
+  const [showUrgentAlert, setShowUrgentAlert] = useState(false)
 
   // Habit form
   const [hName, setHName] = useState('')
@@ -753,6 +757,31 @@ export default function App() {
       archiveVacation()
     }
   }, [state.vacationMode])
+  
+  // ── Check for tasks due in 24 hours ────────────────────────────────────────
+  useEffect(() => {
+    const checkUrgentTasks = () => {
+      const now = new Date()
+      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+      
+      const urgent = state.tasks.filter(task => {
+        if (task.done || !task.due) return false
+        const taskDue = new Date(task.due)
+        return taskDue > now && taskDue <= in24Hours
+      })
+      
+      if (urgent.length > 0 && urgentTasks.length === 0) {
+        setUrgentTasks(urgent)
+        setShowUrgentAlert(true)
+      } else {
+        setUrgentTasks(urgent)
+      }
+    }
+    
+    checkUrgentTasks()
+    const interval = setInterval(checkUrgentTasks, 60000) // Check every minute
+    return () => clearInterval(interval)
+  }, [state.tasks])
 
   // ── Goals ──────────────────────────────────────────────────────────────────
   const openHabit = (id=null) => {
@@ -944,6 +973,16 @@ export default function App() {
     toast$('Vacation scheduled 🏖')
   }
   
+  // Delete vacation - removes current vacation without archiving
+  const deleteVacation = () => {
+    setState(prev => ({
+      ...prev,
+      vacationMode: { active: false, startDate: null, endDate: null }
+    }))
+    close()
+    toast$('Vacation deleted')
+  }
+  
   // Archive completed vacation to history (called by auto-archive effect)
   const archiveVacation = () => {
     const days = vacationDays(state.vacationMode)
@@ -1035,7 +1074,7 @@ export default function App() {
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{display:'flex',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:'Inter,sans-serif',overflow:'hidden'}}>
+    <div style={{display:'flex',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:"'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",overflow:'hidden'}}>
 
       {/* ── FIRST-TIME SETUP ── */}
       {showFirstTimeSetup && (
@@ -1113,11 +1152,11 @@ export default function App() {
       )}
 
       {/* ── SIDEBAR ── */}
-      <aside style={{width:340,minWidth:340,display:'flex',flexDirection:'column',background:'#222',borderRight:'3px solid #444',overflow:'hidden'}}>
+      <aside style={{width:340,minWidth:340,background:'#222',borderRight:'2px solid #444',overflowY:'auto'}}>
 
         {/* Days remaining */}
         <div onClick={()=>{setTargetPick(state.targetDate);setModal('target')}}
-          style={{padding:'18px 22px',borderBottom:'3px solid #444',cursor:'pointer',background:'#222'}}
+          style={{padding:'18px 22px',borderBottom:'2px solid #444',cursor:'pointer',background:'#222'}}
           onMouseEnter={e=>e.currentTarget.style.background='#2a2a2a'}
           onMouseLeave={e=>e.currentTarget.style.background='#222'}>
           <p style={{...mono,fontSize:11,letterSpacing:4,color:'#aaa',marginBottom:5,fontWeight:'bold'}}>TIME REMAINING</p>
@@ -1128,7 +1167,7 @@ export default function App() {
         </div>
 
         {/* Tabs */}
-        <div style={{display:'flex',borderBottom:'3px solid #444'}}>
+        <div style={{display:'flex',borderBottom:'2px solid #444'}}>
           {['today','year'].map(t=>(
             <button key={t} onClick={()=>setSideTab(t)} style={{
               flex:1,padding:'14px 0',border:'none',cursor:'pointer',
@@ -1142,7 +1181,7 @@ export default function App() {
         </div>
 
         {/* Tab body */}
-        <div style={{flex:1,overflowY:'auto',background:'#222'}}>
+        <div style={{background:'#222'}}>
           {sideTab==='today' ? (
             <div style={{padding:16,display:'flex',flexDirection:'column',gap:14}}>
               <Pomodoro presets={state.timerPresets} setPresets={p=>setState({timerPresets:p})} toast$={toast$}/>
@@ -1158,7 +1197,7 @@ export default function App() {
 
         {/* Goals */}
         <div style={{borderTop:'3px solid #444'}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'3px solid #333',background:'#222'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'2px solid #333',background:'#222'}}>
             <span style={{...mono,fontSize:11,letterSpacing:4,color:'#ccc',fontWeight:'bold'}}>GOALS</span>
             <div style={{display:'flex',gap:8,alignItems:'center'}}>
               <select value={catF} onChange={e=>setCatF(e.target.value)} style={{...selectSt,fontSize:11}}>
@@ -1171,7 +1210,7 @@ export default function App() {
               }}>+</button>
             </div>
           </div>
-          <div style={{maxHeight:240,overflowY:'auto',background:'#222'}}>
+          <div style={{background:'#222'}}>
             {filteredHabits.length===0
               ? <p style={emptyTxt}>No goals · Ctrl+N to add</p>
               : filteredHabits.map(h => {
@@ -1179,7 +1218,7 @@ export default function App() {
                   const isDone = (state.history[todayKey()]||[]).includes(h.id)
                   const col = CAT_COLORS[h.category]||'#888'
                   return (
-                    <div key={h.id} style={{borderBottom:'3px solid #2a2a2a',padding:'11px 16px',background:'#222'}}>
+                    <div key={h.id} style={{borderBottom:'2px solid #2a2a2a',padding:'11px 16px',background:'#222'}}>
                       <div style={{display:'flex',alignItems:'center',gap:10}}>
                         <button onClick={()=>toggleHist(h.id,todayKey())} style={{
                           width:18,height:18,borderRadius:4,border:`2px solid ${isDone?col:'#666'}`,
@@ -1208,14 +1247,14 @@ export default function App() {
 
         {/* Tasks */}
         <div style={{borderTop:'3px solid #444'}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'3px solid #333',background:'#222'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderBottom:'2px solid #333',background:'#222'}}>
             <span style={{...mono,fontSize:11,letterSpacing:4,color:'#ccc',fontWeight:'bold'}}>TASKS</span>
             <button onClick={()=>openTask()} style={{
               width:30,height:30,borderRadius:6,border:'none',cursor:'pointer',
               background:'#fff',color:'#000',...mono,fontSize:18,fontWeight:'bold',lineHeight:'28px',padding:0
             }}>+</button>
           </div>
-          <div style={{padding:'10px 12px',display:'flex',gap:6,borderBottom:'3px solid #2a2a2a',background:'#222'}}>
+          <div style={{padding:'10px 12px',display:'flex',gap:6,borderBottom:'2px solid #2a2a2a',background:'#222'}}>
             <input value={tSearch} onChange={e=>setTSearch(e.target.value)} placeholder="Search…"
               style={{...inputSt,flex:1,padding:'8px 12px',fontSize:12}}/>
             <select value={tTierF} onChange={e=>setTTierF(e.target.value)} style={{...selectSt,fontSize:11}}>
@@ -1225,7 +1264,7 @@ export default function App() {
               <option value="all">All</option><option value="open">Open</option><option value="done">Done</option><option value="overdue">Late</option>
             </select>
           </div>
-          <div style={{maxHeight:220,overflowY:'auto',background:'#222'}}>
+          <div style={{background:'#222'}}>
             {filteredTasks.length===0
               ? <p style={emptyTxt}>No tasks · Ctrl+T to add</p>
               : filteredTasks.map(t => {
@@ -1233,17 +1272,39 @@ export default function App() {
                   const tierCol = [null,'#22c55e','#eab308','#ef4444'][t.tier]
                   const subtasksDone = (t.subtasks||[]).filter(s=>s.done).length
                   const subtasksTotal = (t.subtasks||[]).length
+                  // Check if task is urgent (due in 24 hours)
+                  const isUrgent = urgentTasks.some(ut => ut.id === t.id)
+                  // Calculate hours overdue or remaining
+                  const hoursDiff = Math.abs(Math.floor((due - now) / (1000 * 60 * 60)))
+                  const hoursText = ov 
+                    ? `${hoursDiff}h overdue` 
+                    : hoursDiff < 24 
+                      ? `${hoursDiff}h left`
+                      : ''
                   return (
-                    <div key={t.id} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 16px',borderBottom:'3px solid #2a2a2a',opacity:t.done?0.45:1}}>
+                    <div key={t.id} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 16px',borderBottom:'2px solid #2a2a2a',opacity:t.done?0.45:1,position:'relative'}}>
+                      {isUrgent && !t.done && (
+                        <div className="urgent-blink" style={{
+                          position:'absolute',left:4,top:'50%',transform:'translateY(-50%)',
+                          width:8,height:8,borderRadius:'50%',background:'#ef4444'
+                        }}/>
+                      )}
                       <button onClick={()=>togTask(t.id)} style={{
                         width:18,height:18,borderRadius:4,border:`2px solid ${t.done?'#aaa':'#666'}`,
-                        background:t.done?'#fff':'transparent',cursor:'pointer',flexShrink:0,transition:'all 0.15s'
+                        background:t.done?'#fff':'transparent',cursor:'pointer',flexShrink:0,transition:'all 0.15s',marginLeft:isUrgent&&!t.done?12:0
                       }}>{t.done&&<span style={{fontSize:11,color:'#000',display:'block',textAlign:'center',lineHeight:'18px',fontWeight:'bold'}}>✓</span>}</button>
                       <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={()=>openTask(t.id)}>
                         <p style={{...mono,fontSize:13,color:t.done?'#888':'#fff',textDecoration:t.done?'line-through':'none',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontWeight:'600'}}>{t.name}</p>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
-                          <p style={{...mono,fontSize:11,color:ov?'#ef4444':'#aaa',fontWeight:'500'}}>
-                            {t.done?'DONE':ov?`OVERDUE · ${due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`:due.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+                          <p style={{...mono,fontSize:11,color:ov?'#ef4444':isUrgent?'#eab308':'#aaa',fontWeight:'500'}}>
+                            {t.done
+                              ? 'DONE'
+                              : ov
+                                ? `OVERDUE · ${hoursText}`
+                                : hoursText
+                                  ? `${due.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${hoursText}`
+                                  : due.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
+                            }
                           </p>
                           {subtasksTotal > 0 && (
                             <span style={{...mono,fontSize:10,color:subtasksDone===subtasksTotal?'#22c55e':'#666',background:'#1a1a1a',padding:'2px 6px',borderRadius:4}}>
@@ -1265,11 +1326,11 @@ export default function App() {
       <main style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',background:'#1a1a1a'}}>
 
         {/* Header */}
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 36px',height:76,borderBottom:'3px solid #444',flexShrink:0,background:'#222'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 36px',height:76,borderBottom:'2px solid #444',flexShrink:0,background:'#222'}}>
           <div style={{display:'flex',alignItems:'center',gap:18}}>
             {/* ALWAYS VISIBLE navigation arrows */}
             <button onClick={()=>{ if(view==='micro') navM(-1); else setCalY(y=>y-1) }} style={{
-              ...mono,background:'#333',border:'3px solid #555',color:'#fff',cursor:'pointer',
+              ...mono,background:'#333',border:'2px solid #555',color:'#fff',cursor:'pointer',
               borderRadius:8,padding:'10px 20px',fontSize:18,transition:'all 0.15s',fontWeight:'bold'
             }}>◀</button>
 
@@ -1278,7 +1339,7 @@ export default function App() {
             </h1>
 
             <button onClick={()=>{ if(view==='micro') navM(1); else setCalY(y=>y+1) }} style={{
-              ...mono,background:'#333',border:'3px solid #555',color:'#fff',cursor:'pointer',
+              ...mono,background:'#333',border:'2px solid #555',color:'#fff',cursor:'pointer',
               borderRadius:8,padding:'10px 20px',fontSize:18,transition:'all 0.15s',fontWeight:'bold'
             }}>▶</button>
           </div>
@@ -1286,22 +1347,22 @@ export default function App() {
           <div style={{display:'flex',gap:12,alignItems:'center'}}>
             {view==='micro' && (
               <button onClick={()=>setView('macro')} style={{
-                ...mono,background:'#333',border:'3px solid #555',color:'#eee',cursor:'pointer',
+                ...mono,background:'#333',border:'2px solid #555',color:'#eee',cursor:'pointer',
                 borderRadius:8,padding:'10px 18px',fontSize:12,letterSpacing:3,fontWeight:'bold'
               }}>← YEAR</button>
             )}
-            <button onClick={exportData} title="Export" style={{background:'#333',border:'3px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>💾</button>
-            <label title="Import" style={{background:'#333',border:'3px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16,display:'inline-block'}}>
+            <button onClick={exportData} title="Export" style={{background:'#333',border:'2px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>💾</button>
+            <label title="Import" style={{background:'#333',border:'2px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16,display:'inline-block'}}>
               📂<input type="file" accept=".json" onChange={importData} style={{display:'none'}}/>
             </label>
             <button onClick={()=>{ const ins=buildInsights(); setModal(ins.length?'insights':'noinsights') }}
-              style={{background:'#333',border:'3px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>📊</button>
-            <button onClick={()=>setShowDeleteWarning(true)} title="Delete All Data" style={{background:'#2a1111',border:'3px solid #ef4444',color:'#ef4444',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>🗑️</button>
+              style={{background:'#333',border:'2px solid #555',color:'#eee',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>📊</button>
+            <button onClick={()=>setShowDeleteWarning(true)} title="Delete All Data" style={{background:'#2a1111',border:'2px solid #ef4444',color:'#ef4444',cursor:'pointer',borderRadius:8,padding:'10px 14px',fontSize:16}}>🗑️</button>
           </div>
         </div>
 
         {/* Hint bar */}
-        <div style={{padding:'8px 36px',background:'#222',borderBottom:'3px solid #333',flexShrink:0}}>
+        <div style={{padding:'8px 36px',background:'#222',borderBottom:'2px solid #333',flexShrink:0}}>
           <span style={{...mono,fontSize:11,color:'#888',letterSpacing:2,fontWeight:'bold'}}>
             {view==='micro'
               ? '◀ ▶ navigate months · Esc back to year · click day for details & journal'
@@ -1317,6 +1378,71 @@ export default function App() {
           }
         </div>
       </main>
+
+      {/* ── URGENT TASKS ALERT (Non-blocking) ── */}
+      {showUrgentAlert && urgentTasks.length > 0 && (
+        <div style={{
+          position:'fixed',
+          bottom:80,
+          right:24,
+          background:'#1a1a1a',
+          border:'2px solid #ef4444',
+          borderRadius:12,
+          padding:'18px 22px',
+          zIndex:90,
+          width:340,
+          boxShadow:'0 8px 24px rgba(0,0,0,0.8)'
+        }}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:20}}>⚠️</span>
+              <h3 style={{...mono,fontSize:13,fontWeight:'bold',color:'#ef4444',letterSpacing:'0.03em'}}>
+                URGENT: {urgentTasks.length} TASK{urgentTasks.length !== 1 ? 'S' : ''}
+              </h3>
+            </div>
+            <button onClick={()=>setShowUrgentAlert(false)} style={{
+              background:'transparent',border:'none',color:'#666',
+              cursor:'pointer',fontSize:18,padding:0,width:24,height:24
+            }}>×</button>
+          </div>
+          
+          <div style={{marginBottom:12,maxHeight:120,overflowY:'auto'}}>
+            {urgentTasks.slice(0,3).map(task => {
+              const due = new Date(task.due)
+              const hoursLeft = Math.ceil((due - new Date()) / (1000 * 60 * 60))
+              return (
+                <div key={task.id} style={{
+                  padding:'8px 12px',
+                  marginBottom:6,
+                  background:'#222',
+                  border:'1px solid #333',
+                  borderRadius:6
+                }}>
+                  <p style={{...mono,fontSize:12,color:'#fff',marginBottom:2}}>
+                    {task.name}
+                  </p>
+                  <p style={{...mono,fontSize:10,color:'#ef4444'}}>
+                    {hoursLeft}h left
+                  </p>
+                </div>
+              )
+            })}
+            {urgentTasks.length > 3 && (
+              <p style={{...mono,fontSize:10,color:'#666',textAlign:'center',marginTop:4}}>
+                +{urgentTasks.length - 3} more
+              </p>
+            )}
+          </div>
+          
+          <button onClick={()=>setShowUrgentAlert(false)} style={{
+            width:'100%',padding:'10px',background:'#ef4444',color:'#fff',
+            border:'none',borderRadius:6,cursor:'pointer',...mono,
+            fontSize:11,fontWeight:'bold',letterSpacing:'0.03em'
+          }}>
+            GOT IT
+          </button>
+        </div>
+      )}
 
       {/* ── MODALS ── */}
       {modal && (
@@ -1484,6 +1610,11 @@ export default function App() {
               </div>
               <MRow>
                 <Btn onClick={close} style={{background:'#1a1a1a',color:'#666'}}>CANCEL</Btn>
+                {vm.active && (
+                  <Btn onClick={deleteVacation} style={{background:'#3a1a1a',color:'#ef4444',border:'2px solid #ef4444'}}>
+                    DELETE
+                  </Btn>
+                )}
                 <Btn onClick={saveVacation}>ACTIVATE</Btn>
               </MRow>
             </>}
@@ -1658,7 +1789,7 @@ function Pomodoro({ presets, setPresets, toast$ }) {
   }
 
   return (
-    <div style={{background:'#2a2a2a',border:'3px solid #444',borderRadius:12,padding:20}}>
+    <div style={{background:'#2a2a2a',border:'2px solid #444',borderRadius:12,padding:20}}>
       <div style={{display:'flex',gap:8,marginBottom:18}}>
         {[['focus','FOCUS'],['shortBreak','BREAK']].map(([k,l])=>(
           <button key={k} onClick={()=>switchType(k)} style={{
@@ -1728,7 +1859,7 @@ function ClassToday({ classes, onManage }) {
   const tod = (classes||[]).filter(c=>c.days?.includes(todow))
   const oth = (classes||[]).filter(c=>!c.days?.includes(todow))
   return (
-    <div style={{background:'#2a2a2a',border:'3px solid #444',borderRadius:12,padding:16}}>
+    <div style={{background:'#2a2a2a',border:'2px solid #444',borderRadius:12,padding:16}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
         <span style={{...mono,fontSize:11,letterSpacing:4,color:'#aaa',fontWeight:'bold'}}>CLASS SCHEDULE</span>
         <button onClick={onManage} style={{background:'none',border:'2px solid #555',color:'#888',cursor:'pointer',borderRadius:6,padding:'5px 10px',fontSize:12}}>⚙</button>
@@ -1737,7 +1868,7 @@ function ClassToday({ classes, onManage }) {
       {tod.length>0&&<>
         <p style={{...mono,fontSize:10,color:'#22c55e',letterSpacing:3,marginBottom:8,fontWeight:'bold'}}>TODAY</p>
         {tod.map((c,i)=>(
-          <div key={i} style={{background:'#1a2a1a',border:'3px solid #2a4a2a',borderRadius:8,padding:12,marginBottom:8}}>
+          <div key={i} style={{background:'#1a2a1a',border:'2px solid #2a4a2a',borderRadius:8,padding:12,marginBottom:8}}>
             <p style={{...mono,fontSize:13,color:'#22c55e',fontWeight:'bold'}}>{c.code} <span style={{color:'#4ade80',fontWeight:'normal',fontSize:12}}>{c.name}</span></p>
             {c.time&&<p style={{...mono,fontSize:11,color:'#888',marginTop:3,fontWeight:'500'}}>🕐 {c.time}{c.location?` · ${c.location}`:''}</p>}
           </div>
@@ -1847,7 +1978,7 @@ function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
         const pColor = mpct>=80?'#22c55e':mpct>=50?'#eab308':'#ef4444'
         return (
           <div key={m} onClick={()=>onMonth(m)} style={{
-            background:'#222',border:'3px solid #444',borderRadius:14,padding:24,cursor:'pointer',transition:'all 0.2s'
+            background:'#222',border:'2px solid #444',borderRadius:14,padding:24,cursor:'pointer',transition:'all 0.2s'
           }}
           onMouseEnter={e=>{e.currentTarget.style.borderColor='#777';e.currentTarget.style.background='#2a2a2a'}}
           onMouseLeave={e=>{e.currentTarget.style.borderColor='#444';e.currentTarget.style.background='#222'}}>
@@ -2023,7 +2154,7 @@ function MicroView({ year, month, state, onToggle, onJournal }) {
             return (
               <div key={l} style={{display:'flex',alignItems:'center',gap:8}}>
                 {isVacLegend ? (
-                  <div style={{width:12,height:12,borderRadius:4,background:'#222',border:'3px solid #666',opacity:0.5}}/>
+                  <div style={{width:12,height:12,borderRadius:4,background:'#222',border:'2px solid #666',opacity:0.5}}/>
                 ) : isClassEmoji ? (
                   <div style={{fontSize:12}}>📚</div>
                 ) : (
@@ -2038,7 +2169,7 @@ function MicroView({ year, month, state, onToggle, onJournal }) {
 
       {/* Detail panel */}
       <div style={{width:320,flexShrink:0}}>
-        <div style={{background:'#222',border:'3px solid #444',borderRadius:14,padding:22,position:'sticky',top:0}}>
+        <div style={{background:'#222',border:'2px solid #444',borderRadius:14,padding:22,position:'sticky',top:0}}>
           <p style={{...mono,fontSize:11,color:'#aaa',letterSpacing:4,marginBottom:8,fontWeight:'bold'}}>SELECTED DAY</p>
           <p style={{...mono,fontWeight:'bold',fontSize:19,color:'#fff',marginBottom:8}}>
             {new Date(sel+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}
@@ -2091,7 +2222,7 @@ function MicroView({ year, month, state, onToggle, onJournal }) {
               {selTasks.map(t=>{
                 const tc=[null,'#22c55e','#eab308','#ef4444'][t.tier]
                 return (
-                  <div key={t.id} style={{background:'#2a2a2a',borderRadius:8,padding:'10px 12px',marginBottom:5,display:'flex',alignItems:'center',gap:10,border:'3px solid #444'}}>
+                  <div key={t.id} style={{background:'#2a2a2a',borderRadius:8,padding:'10px 12px',marginBottom:5,display:'flex',alignItems:'center',gap:10,border:'2px solid #444'}}>
                     <div style={{width:7,height:7,borderRadius:'50%',background:tc,flexShrink:0}}/>
                     <p style={{...mono,fontSize:13,color:t.done?'#888':'#ddd',textDecoration:t.done?'line-through':'none',flex:1,fontWeight:'600'}}>{t.name}</p>
                   </div>
