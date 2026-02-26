@@ -579,7 +579,7 @@ function CalPicker({ value, onChange, label, minDate }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
           {DAYS_SHORT.map(d=><div key={d} style={{textAlign:'center',fontSize:9,color:'#444',...mono}}>{d[0]}</div>)}
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,gridTemplateRows:'repeat(6,1fr)'}}>
           {Array.from({length:off},(_,i)=><div key={'e'+i}/>)}
           {Array.from({length:dim},(_,i)=>{
             const d = i+1
@@ -598,6 +598,8 @@ function CalPicker({ value, onChange, label, minDate }) {
               }}>{d}</button>
             )
           })}
+          {/* Fill remaining cells to always have 6 rows (42 total cells) */}
+          {Array.from({length: 42 - off - dim},(_,i)=><div key={'f'+i}/>)}
         </div>
       </div>
     </div>
@@ -609,7 +611,7 @@ const mono    = { fontFamily: "'Epilogue', sans-serif" }
 const inputSt = { width:'100%', background:'#111', border:'1px solid #333', color:'#e5e5e5', borderRadius:6, padding:'10px 12px', fontSize:12, outline:'none', ...mono, boxSizing:'border-box' }
 const selectSt= { background:'#111', border:'1px solid #333', color:'#999', borderRadius:4, padding:'4px 6px', fontSize:10, outline:'none', ...mono, cursor:'pointer' }
 const emptyTxt= { ...mono, fontSize:10, color:'#2a2a2a', padding:'14px 16px', textAlign:'center', letterSpacing:2 }
-const mLabel  = { ...mono, fontSize:9, letterSpacing:4, color:'#555', marginBottom:8 }
+const mLabel  = { ...mono, fontSize:9, letterSpacing:4, color:'#aaa', marginBottom:8, fontWeight:'bold' }
 const navBtn  = { background:'none', border:'1px solid #333', color:'#777', cursor:'pointer', borderRadius:4, padding:'2px 8px', fontSize:11, ...mono }
 const iconBtn = (color) => ({ background:'none', border:'none', cursor:'pointer', color, fontSize:11, padding:'2px 4px', borderRadius:3, transition:'color 0.15s', ...mono })
 
@@ -1081,25 +1083,26 @@ export default function App() {
         <div style={{
           position:'fixed',inset:0,zIndex:200,background:'#1a1a1a',
           display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-          padding:24
+          padding:20,
+          overflow:'auto'
         }}>
           <div style={{maxWidth:520,width:'100%',textAlign:'center'}}>
-            <div style={{fontSize:48,marginBottom:16}}>🎯</div>
-            <h1 style={{...mono,fontSize:26,fontWeight:900,letterSpacing:2,color:'#fff',marginBottom:12}}>
+            <div style={{fontSize:40,marginBottom:12}}>🎯</div>
+            <h1 style={{...mono,fontSize:24,fontWeight:900,letterSpacing:2,color:'#fff',marginBottom:8}}>
               WELCOME TO WHAT-TO-DO
             </h1>
-            <p style={{fontSize:15,color:'#aaa',lineHeight:1.5,marginBottom:28}}>
+            <p style={{fontSize:14,color:'#aaa',lineHeight:1.5,marginBottom:20}}>
               Let's get started! First, set your target goal date.<br/>
               This will help you track your progress and stay motivated.
             </p>
             
-            <div style={{marginBottom:28}}>
-              <p style={{...mono,fontSize:10,letterSpacing:3,color:'#666',marginBottom:10,fontWeight:'bold',textAlign:'left'}}>
+            <div style={{marginBottom:20}}>
+              <p style={{...mono,fontSize:11,letterSpacing:3,color:'#aaa',marginBottom:10,fontWeight:'bold',textAlign:'left'}}>
                 SELECT YOUR GOAL DATE
               </p>
               <CalPicker value={firstTimeGoalDate} onChange={setFirstTimeGoalDate} />
               {firstTimeGoalDate && (
-                <p style={{...mono,fontSize:13,color:'#22c55e',marginTop:12,fontWeight:'bold'}}>
+                <p style={{...mono,fontSize:13,color:'#22c55e',marginTop:10,fontWeight:'bold'}}>
                   {daysLeft(firstTimeGoalDate)} days from today
                 </p>
               )}
@@ -1109,7 +1112,7 @@ export default function App() {
               onClick={completeFirstTimeSetup}
               disabled={!firstTimeGoalDate}
               style={{
-                padding:'14px 40px',
+                padding:'12px 40px',
                 background:firstTimeGoalDate?'#fff':'#333',
                 color:firstTimeGoalDate?'#000':'#666',
                 border:'none',
@@ -2029,15 +2032,16 @@ function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                   </div>
                 )
                 const bg = done>0 ? compBg(pct) : isTod?'#333':'#1a1a1a'
-                const border = isTar?'2px solid #ccc':isTod?'2px solid #888':'2px solid #333'
+                const border = isTar?'3px solid #eab308':isTod?'2px solid #888':'2px solid #333'
                 return (
                   <div key={d} 
                     onClick={(e) => {onHoverEnd?.(); onMonth(m)}}
                     onMouseEnter={(e) => onHover?.(k, {x: e.clientX + 15, y: e.clientY + 15})}
                     onMouseLeave={() => onHoverEnd?.()}
                     onMouseMove={(e) => onHover?.(k, {x: e.clientX + 15, y: e.clientY + 15})}
-                    style={{borderRadius:5,aspectRatio:'1',border,background:bg,display:'flex',alignItems:'center',justifyContent:'center',position:'relative',cursor:'pointer'}}>
-                    <span style={{...mono,fontSize:13,color:done>0?compColor(pct):isTod?'#fff':'#888',fontWeight:'bold'}}>{d}</span>
+                    style={{borderRadius:5,aspectRatio:'1',border,background:isTar?'#2a2410':bg,display:'flex',alignItems:'center',justifyContent:'center',position:'relative',cursor:'pointer'}}>
+                    {isTar && <div style={{position:'absolute',top:-2,right:-2,fontSize:14}}>🎯</div>}
+                    <span style={{...mono,fontSize:13,color:isTar?'#eab308':done>0?compColor(pct):isTod?'#fff':'#888',fontWeight:'bold'}}>{d}</span>
                     <div style={{position:'absolute',top:2,right:2,display:'flex',flexDirection:'column',gap:2,alignItems:'flex-end'}}>
                       {hasClass && <div style={{fontSize:8}}>📚</div>}
                       {highestPriorityTask && <div style={{width:8,height:8,borderRadius:'50%',background:getTaskPriorityColor(highestPriorityTask.tier),border:'2px solid #222'}}/>}
@@ -2123,18 +2127,19 @@ function MicroView({ year, month, state, onToggle, onJournal }) {
               </div>
             )
 
-            const bg=isSel?'#333':done>0?compBg(pct):'#222'
+            const bg=isSel?'#333':isTar?'#2a2410':done>0?compBg(pct):'#222'
             return (
               <div key={d} 
                 onClick={()=>setSel(k)}
                 style={{
                   aspectRatio:'1',borderRadius:12,cursor:'pointer',padding:'12px 8px',
                   display:'flex',flexDirection:'column',alignItems:'center',
-                  border: isSel?'4px solid #fff': isTar?'4px solid #ccc': isTod?'4px solid #aaa':'4px solid #444',
+                  border: isSel?'4px solid #fff': isTar?'4px solid #eab308': isTod?'4px solid #aaa':'4px solid #444',
                   background:bg, transition:'all 0.15s', position:'relative'
                 }}>
+                {isTar && <div style={{position:'absolute',top:3,left:3,fontSize:16}}>🎯</div>}
                 <span style={{...mono,fontWeight:'bold',fontSize:24,
-                  color:isSel?'#fff':done>0?compColor(pct):isTod?'#fff':'#aaa'}}>{d}</span>
+                  color:isSel?'#fff':isTar?'#eab308':done>0?compColor(pct):isTod?'#fff':'#aaa'}}>{d}</span>
                 {done>0&&ag.length>0&&<span style={{...mono,fontSize:14,color:'#aaa',marginTop:5,fontWeight:'bold'}}>{done}/{ag.length}</span>}
                 <div style={{position:'absolute',top:5,right:5,display:'flex',flexDirection:'column',gap:3,alignItems:'flex-end'}}>
                   {hasClass && <div style={{fontSize:10}}>📚</div>}
@@ -2232,15 +2237,26 @@ function MicroView({ year, month, state, onToggle, onJournal }) {
           )}
 
           {/* Journal button */}
-          <button onClick={()=>onJournal(sel)} style={{
-            width:'100%',padding:'13px 0',border:`3px solid ${state.journal[sel]?'#aaa':'#444'}`,
-            borderRadius:10,cursor:'pointer',
-            background:state.journal[sel]?'#2a2a2a':'transparent',
-            ...mono,fontSize:12,letterSpacing:3,fontWeight:'bold',
-            color:state.journal[sel]?'#eee':'#888',transition:'all 0.15s'
-          }}>
-            {state.journal[sel] ? '📝 EDIT JOURNAL' : '📝 WRITE JOURNAL'}
-          </button>
+          {sel <= todayKey() ? (
+            <button onClick={()=>onJournal(sel)} style={{
+              width:'100%',padding:'13px 0',border:`3px solid ${state.journal[sel]?'#aaa':'#444'}`,
+              borderRadius:10,cursor:'pointer',
+              background:state.journal[sel]?'#2a2a2a':'transparent',
+              ...mono,fontSize:12,letterSpacing:3,fontWeight:'bold',
+              color:state.journal[sel]?'#eee':'#888',transition:'all 0.15s'
+            }}>
+              {state.journal[sel] ? '📝 EDIT JOURNAL' : '📝 WRITE JOURNAL'}
+            </button>
+          ) : (
+            <div style={{
+              width:'100%',padding:'13px 0',border:'3px solid #333',
+              borderRadius:10,background:'#1a1a1a',
+              ...mono,fontSize:12,letterSpacing:3,fontWeight:'bold',
+              color:'#555',textAlign:'center'
+            }}>
+              📝 JOURNAL (FUTURE DATE)
+            </div>
+          )}
 
           {selGoals.length===0&&selTasks.length===0&&!selVac&&(
             <p style={{...mono,fontSize:13,color:'#555',textAlign:'center',padding:'14px 0',marginTop:10}}>Nothing scheduled</p>
