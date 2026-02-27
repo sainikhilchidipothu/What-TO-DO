@@ -96,6 +96,9 @@ function DayPreviewCard({ dateKey, state, position }) {
   const pendingTasks = preview.tasks.filter(t => !t.done)
   const completedGoals = state.history[dateKey]?.length || 0
   
+  // Check if this is the target day
+  const isTargetDay = dateKey === state.targetDate
+  
   // ALWAYS show the card for every date
   const isEmpty = !preview.isVacation && !preview.hasClass && preview.goals.length === 0 && pendingTasks.length === 0 && !preview.hasJournal
   
@@ -106,7 +109,7 @@ function DayPreviewCard({ dateKey, state, position }) {
       left:position.x,
       top:position.y,
       background:'#222',
-      border:'2px solid #666',
+      border:isTargetDay?'2px solid #eab308':'2px solid #666',
       borderRadius:12,
       padding:16,
       minWidth:240,
@@ -115,6 +118,13 @@ function DayPreviewCard({ dateKey, state, position }) {
       pointerEvents:'none'
     }}>
       <p style={{...mono,fontSize:14,color:'#fff',marginBottom:12,fontWeight:'bold',letterSpacing:1}}>{dateStr}</p>
+      
+      {isTargetDay && (
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10,padding:'10px 12px',background:'#2a2410',borderRadius:8,border:'2px solid #eab308'}}>
+          <span style={{fontSize:18}}>🎯</span>
+          <span style={{...mono,fontSize:13,color:'#eab308',fontWeight:'bold',letterSpacing:1}}>THE DAY!</span>
+        </div>
+      )}
       
       {isEmpty ? (
         <div style={{padding:'12px 10px',background:'#2a2a2a',borderRadius:8,border:'2px solid #444',textAlign:'center'}}>
@@ -657,6 +667,7 @@ export default function App() {
   const [calM, setCalM]     = useState(new Date().getMonth())
   const [calY, setCalY]     = useState(new Date().getFullYear())
   const [sideTab, setSideTab] = useState('today')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [modal, setModal]   = useState(null)
   const [editId, setEditId] = useState(null)
   const [toast, setToast]   = useState(null)
@@ -685,7 +696,7 @@ export default function App() {
   
   // Task due warning state
   const [urgentTasks, setUrgentTasks] = useState([])
-  const [showUrgentAlert, setShowUrgentAlert] = useState(false)
+  const [showUrgentAlert, setShowUrgentAlert] = useState(true) // Show by default on load
   
   // Show completed tasks toggle
   const [showCompletedTasks, setShowCompletedTasks] = useState(false)
@@ -793,11 +804,13 @@ export default function App() {
         return taskDue > now && taskDue <= in24Hours
       })
       
-      if (urgent.length > 0 && urgentTasks.length === 0) {
-        setUrgentTasks(urgent)
-        setShowUrgentAlert(true)
-      } else {
-        setUrgentTasks(urgent)
+      setUrgentTasks(urgent)
+      // Show alert if there are urgent tasks and it hasn't been dismissed this session
+      if (urgent.length > 0 && showUrgentAlert) {
+        // Alert will show, user can dismiss with X
+      } else if (urgent.length === 0) {
+        // No urgent tasks, hide alert
+        setShowUrgentAlert(false)
       }
     }
     
@@ -1122,7 +1135,7 @@ export default function App() {
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{display:'flex',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:"'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",overflow:'hidden'}}>
+    <div style={{display:'flex',flexDirection:'row',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:"'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",overflow:'hidden'}} className="app-container">>
 
       {/* ── FIRST-TIME SETUP ── */}
       {showFirstTimeSetup && (
@@ -1201,7 +1214,31 @@ export default function App() {
       )}
 
       {/* ── SIDEBAR ── */}
-      <aside style={{width:340,minWidth:340,background:'#222',borderRight:'2px solid #444',overflowY:'auto'}}>
+      <aside 
+        style={{
+          width:340,
+          minWidth:340,
+          background:'#222',
+          borderRight:'2px solid #444',
+          overflowY:'auto',
+          position:'relative'
+        }} 
+        className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}
+      >
+        {/* Mobile close overlay */}
+        {mobileMenuOpen && (
+          <div 
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position:'fixed',
+              inset:0,
+              background:'rgba(0,0,0,0.5)',
+              zIndex:10,
+              display:'none'
+            }}
+            className="mobile-overlay"
+          />
+        )}
 
         {/* Days remaining */}
         <div onClick={()=>{setTargetPick(state.targetDate);setModal('target')}}
@@ -1439,13 +1476,32 @@ export default function App() {
         {/* Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 36px',height:76,borderBottom:'2px solid #444',flexShrink:0,background:'#222'}}>
           <div style={{display:'flex',alignItems:'center',gap:18}}>
+            {/* Mobile hamburger menu */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                display:'none',
+                background:'#333',
+                border:'2px solid #555',
+                color:'#fff',
+                cursor:'pointer',
+                borderRadius:8,
+                padding:'10px 14px',
+                fontSize:20,
+                transition:'all 0.15s'
+              }}
+              className="mobile-hamburger"
+            >
+              ☰
+            </button>
+
             {/* ALWAYS VISIBLE navigation arrows */}
             <button onClick={()=>{ if(view==='micro') navM(-1); else setCalY(y=>y-1) }} style={{
               ...mono,background:'#333',border:'2px solid #555',color:'#fff',cursor:'pointer',
               borderRadius:8,padding:'10px 20px',fontSize:18,transition:'all 0.15s',fontWeight:'bold'
             }}>◀</button>
 
-            <h1 style={{...mono,fontWeight:900,fontSize:26,letterSpacing:6,color:'#fff',minWidth:340,textAlign:'center'}}>
+            <h1 style={{...mono,fontWeight:900,fontSize:26,letterSpacing:6,color:'#fff',minWidth:340,textAlign:'center'}} className="calendar-title">
               {view==='macro' ? `${calY} OVERVIEW` : `${MONTHS[calM].toUpperCase()} ${calY}`}
             </h1>
 
