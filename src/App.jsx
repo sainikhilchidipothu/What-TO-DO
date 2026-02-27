@@ -18,12 +18,14 @@ const DEFAULT_STATE = {
   targetDate:'2026-08-31',
   semesterStart:'2026-01-06', 
   semesterEnd:'2026-05-01',
-  classes:[], // {id, code, name, days, time, location, color}
+  classes:[], // {id, code, name, days, time, location, color, link}
   timerPresets:{ focus:25, shortBreak:5 },
   vacationMode:{ active:false, startDate:null, endDate:null },
   vacationHistory:[], 
   assignments:[], // {id, classId, name, dueDate, grade, completed, taskId?}
   deletedItems:[], // Undo queue: {type, item, timestamp}
+  xp: 0, // XP system for gamification
+  level: 1,
 }
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -670,6 +672,9 @@ export default function App() {
   // Task due warning state
   const [urgentTasks, setUrgentTasks] = useState([])
   const [showUrgentAlert, setShowUrgentAlert] = useState(false)
+  
+  // Show completed tasks toggle
+  const [showCompletedTasks, setShowCompletedTasks] = useState(false)
 
   // Habit form
   const [hName, setHName] = useState('')
@@ -685,6 +690,7 @@ export default function App() {
   const [tTier, setTTier] = useState(2)
   const [tSubtasks, setTSubtasks] = useState([]) // {id, text, done}
   const [tSubtaskInput, setTSubtaskInput] = useState('')
+  const [tClassId, setTClassId] = useState('') // Link task to class
 
   // Target
   const [targetPick, setTargetPick] = useState(state.targetDate)
@@ -705,6 +711,7 @@ export default function App() {
   const [cTime, setCTime] = useState('')
   const [cLoc,  setCLoc]  = useState('')
   const [cDays, setCDays] = useState([])
+  const [cLink, setCLink] = useState('')
   const [editCId, setEditCId] = useState(null)
 
   // Vacation
@@ -868,12 +875,13 @@ export default function App() {
       const t = state.tasks.find(x=>x.id===id)
       setTName(t.name); setTTier(t.tier)
       setTSubtasks(t.subtasks || [])
+      setTClassId(t.classId || '')
       const dt = new Date(t.due)
       setTDate(dk(dt))
       let h = dt.getHours(), ap = h>=12?'PM':'AM'; h = h%12||12
       setTHour(String(h).padStart(2,'0')); setTMin(String(dt.getMinutes()).padStart(2,'0')); setTAmpm(ap)
     } else { 
-      setTName(''); setTDate(''); setTHour('09'); setTMin('00'); setTAmpm('AM'); setTTier(2); setTSubtasks([])
+      setTName(''); setTDate(''); setTHour('09'); setTMin('00'); setTAmpm('AM'); setTTier(2); setTSubtasks([]); setTClassId('')
     }
     setTSubtaskInput('')
     setModal('task')
@@ -889,18 +897,18 @@ export default function App() {
     
     // Check if task date falls during vacation
     if (isVacDay(tDate, state.vacationMode)) {
-      setPendingTaskData({ name: tName.trim(), due, tier: tTier, subtasks: tSubtasks, editId })
+      setPendingTaskData({ name: tName.trim(), due, tier: tTier, subtasks: tSubtasks, classId: tClassId || undefined, editId })
       setShowTaskVacationWarning(true)
       return
     }
     
-    confirmSaveTask({ name: tName.trim(), due, tier: tTier, subtasks: tSubtasks, editId })
+    confirmSaveTask({ name: tName.trim(), due, tier: tTier, subtasks: tSubtasks, classId: tClassId || undefined, editId })
   }
   
   const confirmSaveTask = (taskData) => {
     setState(prev => taskData.editId
-      ? {...prev, tasks:prev.tasks.map(t => t.id===taskData.editId ? {...t,name:taskData.name,due:taskData.due,tier:taskData.tier,subtasks:taskData.subtasks} : t)}
-      : {...prev, tasks:[...prev.tasks, {id:uid(),name:taskData.name,due:taskData.due,tier:taskData.tier,done:false,subtasks:taskData.subtasks}]}
+      ? {...prev, tasks:prev.tasks.map(t => t.id===taskData.editId ? {...t,name:taskData.name,due:taskData.due,tier:taskData.tier,subtasks:taskData.subtasks,classId:taskData.classId} : t)}
+      : {...prev, tasks:[...prev.tasks, {id:uid(),name:taskData.name,due:taskData.due,tier:taskData.tier,done:false,subtasks:taskData.subtasks,classId:taskData.classId}]}
     )
     setShowTaskVacationWarning(false)
     close()
@@ -921,7 +929,26 @@ export default function App() {
   const deleteSubtask = id => {
     setTSubtasks(tSubtasks.filter(s => s.id!==id))
   }
-  const togTask = id => setState(prev => ({...prev, tasks:prev.tasks.map(t => t.id===id ? {...t,done:!t.done} : t)}))
+  const togTask = id => {
+    const task = state.tasks.find(t => t.id === id)
+    const wasCompleted = task?.done
+    
+    setState(prev => {
+      const newXP = !wasCompleted ? prev.xp + 10 : Math.max(0, prev.xp - 10) // +10 for complete, -10 for undo
+      const newLevel = Math.floor(newXP / 100) + 1
+      
+      return {
+        ...prev,
+        tasks: prev.tasks.map(t => t.id === id ? {...t, done: !t.done} : t),
+        xp: newXP,
+        level: newLevel
+      }
+    })
+    
+    if (!wasCompleted) {
+      toast$(`+10 XP! Task completed! 🎉`)
+    }
+  }
 
   // ── Journal ────────────────────────────────────────────────────────────────
   const openJournal = ds => { setJDate(ds); setJText(state.journal[ds]?.text||''); setModal('journal') }
@@ -933,13 +960,13 @@ export default function App() {
   // ── Classes ────────────────────────────────────────────────────────────────
   const openClass = (id=null) => {
     setEditCId(id)
-    if (id) { const c=state.classes.find(x=>x.id===id); setCCode(c.code||''); setCName(c.name||''); setCTime(c.time||''); setCLoc(c.location||''); setCDays(c.days||[]) }
-    else { setCCode(''); setCName(''); setCTime(''); setCLoc(''); setCDays([]) }
+    if (id) { const c=state.classes.find(x=>x.id===id); setCCode(c.code||''); setCName(c.name||''); setCTime(c.time||''); setCLoc(c.location||''); setCDays(c.days||[]); setCLink(c.link||'') }
+    else { setCCode(''); setCName(''); setCTime(''); setCLoc(''); setCDays([]); setCLink('') }
     setModal('class')
   }
   const saveClass = () => {
     if (!cName.trim() || !cDays.length) { toast$('Enter name & select days','err'); return }
-    const cls = {id:editCId||uid(), code:cCode, name:cName, time:cTime, location:cLoc, days:[...cDays].sort()}
+    const cls = {id:editCId||uid(), code:cCode, name:cName, time:cTime, location:cLoc, days:[...cDays].sort(), link:cLink}
     setState(prev => editCId
       ? {...prev, classes:prev.classes.map(c => c.id===editCId ? cls : c)}
       : {...prev, classes:[...prev.classes, cls]}
@@ -1032,6 +1059,11 @@ export default function App() {
         && (tTierF==='all' || String(t.tier)===tTierF)
         && (tStatF==='all' || (tStatF==='done'&&t.done) || (tStatF==='open'&&!t.done&&!ov) || (tStatF==='overdue'&&ov))
     })
+  
+  // Separate pending and completed tasks
+  const pendingTasksList = filteredTasks.filter(t => !t.done)
+  const completedTasksList = filteredTasks.filter(t => t.done)
+  const tasksToShow = showCompletedTasks ? filteredTasks : [...pendingTasksList, ...completedTasksList.slice(0, Math.max(0, 5 - pendingTasksList.length))]
 
   // ── Export/Import ──────────────────────────────────────────────────────────
   const exportData = () => {
@@ -1169,6 +1201,27 @@ export default function App() {
           </p>
         </div>
 
+        {/* XP & Level */}
+        <div style={{padding:'14px 18px',borderBottom:'2px solid #444',background:'#1a1a1a'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+            <div>
+              <p style={{...mono,fontSize:11,letterSpacing:2,color:'#aaa',fontWeight:'bold'}}>LEVEL {state.level}</p>
+              <p style={{...mono,fontSize:10,color:'#666',marginTop:2}}>
+                {state.xp % 100} / 100 XP
+              </p>
+            </div>
+            <div style={{fontSize:26}}>⭐</div>
+          </div>
+          <div style={{height:6,background:'#222',borderRadius:3,overflow:'hidden'}}>
+            <div style={{
+              height:'100%',
+              width:`${(state.xp % 100)}%`,
+              background:'linear-gradient(90deg, #fbbf24, #f59e0b)',
+              transition:'width 0.4s ease-out'
+            }}/>
+          </div>
+        </div>
+
         {/* Tabs */}
         <div style={{display:'flex',borderBottom:'2px solid #444'}}>
           {['today','year'].map(t=>(
@@ -1229,7 +1282,7 @@ export default function App() {
                         }}>{isDone&&<span style={{fontSize:11,color:'#000',display:'block',textAlign:'center',lineHeight:'18px',fontWeight:'bold'}}>✓</span>}</button>
                         <button onClick={()=>openHabit(h.id)} style={{
                           flex:1,background:'none',border:'none',cursor:'pointer',
-                          color:isDone?'#bbb':'#fff',...mono,fontSize:13,textAlign:'left',transition:'color 0.15s',fontWeight:'600'
+                          color:isDone?'#bbb':'#fff',...mono,fontSize:14,textAlign:'left',transition:'color 0.15s',fontWeight:'600'
                         }}>
                           {h.pinned&&<span style={{color:'#fff',marginRight:5}}>★</span>}
                           {h.name}
@@ -1268,9 +1321,9 @@ export default function App() {
             </select>
           </div>
           <div style={{background:'#222'}}>
-            {filteredTasks.length===0
+            {tasksToShow.length===0
               ? <p style={emptyTxt}>No tasks · Ctrl+T to add</p>
-              : filteredTasks.map(t => {
+              : tasksToShow.map(t => {
                   const due = new Date(t.due), ov = due<now && !t.done
                   const tierCol = [null,'#22c55e','#eab308','#ef4444'][t.tier]
                   const subtasksDone = (t.subtasks||[]).filter(s=>s.done).length
@@ -1284,6 +1337,8 @@ export default function App() {
                     : hoursDiff < 24 
                       ? `${hoursDiff}h left`
                       : ''
+                  // Get linked class
+                  const linkedClass = t.classId ? state.classes.find(c => c.id === t.classId) : null
                   return (
                     <div key={t.id} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 16px',borderBottom:'2px solid #2a2a2a',opacity:t.done?0.45:1,position:'relative'}}>
                       {isUrgent && !t.done && (
@@ -1297,9 +1352,9 @@ export default function App() {
                         background:t.done?'#fff':'transparent',cursor:'pointer',flexShrink:0,transition:'all 0.15s',marginLeft:isUrgent&&!t.done?12:0
                       }}>{t.done&&<span style={{fontSize:11,color:'#000',display:'block',textAlign:'center',lineHeight:'18px',fontWeight:'bold'}}>✓</span>}</button>
                       <div style={{flex:1,minWidth:0,cursor:'pointer'}} onClick={()=>openTask(t.id)}>
-                        <p style={{...mono,fontSize:13,color:t.done?'#888':'#fff',textDecoration:t.done?'line-through':'none',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontWeight:'600'}}>{t.name}</p>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
-                          <p style={{...mono,fontSize:11,color:ov?'#ef4444':isUrgent?'#eab308':'#aaa',fontWeight:'500'}}>
+                        <p style={{...mono,fontSize:14,color:t.done?'#888':'#fff',textDecoration:t.done?'line-through':'none',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',fontWeight:'600'}}>{t.name}</p>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2,flexWrap:'wrap'}}>
+                          <p style={{...mono,fontSize:12,color:ov?'#ef4444':isUrgent?'#eab308':'#aaa',fontWeight:'500'}}>
                             {t.done
                               ? 'DONE'
                               : ov
@@ -1309,6 +1364,21 @@ export default function App() {
                                   : due.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})
                             }
                           </p>
+                          {linkedClass && (
+                            <span style={{
+                              display:'inline-block',
+                              padding:'2px 6px',
+                              background:'#1a2a1a',
+                              border:'1px solid #2a4a2a',
+                              borderRadius:4,
+                              ...mono,
+                              fontSize:9,
+                              color:'#4ade80',
+                              fontWeight:'bold'
+                            }}>
+                              {linkedClass.code || linkedClass.name}
+                            </span>
+                          )}
                           {subtasksTotal > 0 && (
                             <span style={{...mono,fontSize:10,color:subtasksDone===subtasksTotal?'#22c55e':'#666',background:'#1a1a1a',padding:'2px 6px',borderRadius:4}}>
                               ✓ {subtasksDone}/{subtasksTotal}
@@ -1321,6 +1391,33 @@ export default function App() {
                     </div>
                   )
                 })}
+            
+            {/* Show More / Show Less button */}
+            {completedTasksList.length > Math.max(0, 5 - pendingTasksList.length) && (
+              <button 
+                onClick={() => setShowCompletedTasks(!showCompletedTasks)}
+                style={{
+                  width:'100%',
+                  padding:'10px',
+                  background:'#222',
+                  border:'2px solid #444',
+                  borderRadius:6,
+                  color:'#aaa',
+                  cursor:'pointer',
+                  ...mono,
+                  fontSize:11,
+                  fontWeight:'bold',
+                  transition:'all 0.15s'
+                }}
+                onMouseEnter={e=>e.currentTarget.style.background='#2a2a2a'}
+                onMouseLeave={e=>e.currentTarget.style.background='#222'}
+              >
+                {showCompletedTasks 
+                  ? '▲ SHOW LESS' 
+                  : `▼ SHOW ${completedTasksList.length - Math.max(0, 5 - pendingTasksList.length)} MORE COMPLETED`
+                }
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -1565,6 +1662,20 @@ export default function App() {
                 )}
               </div>
               
+              <MLabel>LINK TO CLASS (OPTIONAL)</MLabel>
+              <select 
+                value={tClassId} 
+                onChange={e=>setTClassId(e.target.value)}
+                style={{...inputSt,marginBottom:16,fontSize:13}}
+              >
+                <option value="">No class</option>
+                {state.classes.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.code ? `${c.code} - ${c.name}` : c.name}
+                  </option>
+                ))}
+              </select>
+              
               <MRow>
                 <Btn onClick={close} style={{background:'#1a1a1a',color:'#666'}}>CANCEL</Btn>
                 <Btn onClick={saveTask} disabled={!tName.trim()||!tDate}>{editId?'UPDATE':'ADD TASK'}</Btn>
@@ -1651,20 +1762,30 @@ export default function App() {
             {modal==='class' && <>
               <MTitle>{editCId?'EDIT CLASS':'ADD CLASS'}</MTitle>
               <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:10,marginBottom:10}}>
-                <div><MLabel>CODE</MLabel><input value={cCode} onChange={e=>setCCode(e.target.value)} placeholder="COP3502" style={inputSt}/></div>
-                <div><MLabel>NAME</MLabel><input autoFocus value={cName} onChange={e=>setCName(e.target.value)} placeholder="Data Structures" style={inputSt}/></div>
+                <div><MLabel>CODE</MLabel><input value={cCode} onChange={e=>setCCode(e.target.value)} placeholder="COP3502" style={{...inputSt,fontSize:13}}/></div>
+                <div><MLabel>NAME</MLabel><input autoFocus value={cName} onChange={e=>setCName(e.target.value)} placeholder="Data Structures" style={{...inputSt,fontSize:13}}/></div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-                <div><MLabel>TIME</MLabel><input value={cTime} onChange={e=>setCTime(e.target.value)} placeholder="9:00 - 10:15 AM" style={inputSt}/></div>
-                <div><MLabel>LOCATION</MLabel><input value={cLoc} onChange={e=>setCLoc(e.target.value)} placeholder="HPA1 112" style={inputSt}/></div>
+                <div><MLabel>TIME</MLabel><input value={cTime} onChange={e=>setCTime(e.target.value)} placeholder="9:00 - 10:15 AM" style={{...inputSt,fontSize:13}}/></div>
+                <div><MLabel>LOCATION</MLabel><input value={cLoc} onChange={e=>setCLoc(e.target.value)} placeholder="HPA1 112" style={{...inputSt,fontSize:13}}/></div>
               </div>
+              <MLabel>COURSE LINK (OPTIONAL)</MLabel>
+              <input 
+                value={cLink} 
+                onChange={e=>setCLink(e.target.value)} 
+                placeholder="https://webcourses.ucf.edu/..." 
+                style={{...inputSt,marginBottom:10,fontSize:13}}
+              />
+              <p style={{...mono,fontSize:10,color:'#666',marginBottom:16}}>
+                🔗 Link to Webcourses, Canvas, Blackboard, or any platform
+              </p>
               <MLabel>DAYS</MLabel>
-              <div style={{display:'flex',gap:4,marginBottom:20}}>
+              <div style={{display:'flex',gap:6,marginBottom:20}}>
                 {DAYS_SHORT.map((d,i)=>(
                   <button key={i} onClick={()=>setCDays(p=>p.includes(i)?p.filter(x=>x!==i):[...p,i])} style={{
-                    flex:1,padding:'8px 0',borderRadius:5,border:'none',cursor:'pointer',...mono,fontSize:9,transition:'all 0.15s',
-                    background:cDays.includes(i)?'#fff':'#151515',
-                    color:cDays.includes(i)?'#000':'#444',fontWeight:cDays.includes(i)?'bold':'normal'
+                    flex:1,padding:'10px 0',borderRadius:6,border:'2px solid '+(cDays.includes(i)?'#fff':'#222'),cursor:'pointer',...mono,fontSize:11,transition:'all 0.15s',
+                    background:cDays.includes(i)?'#fff':'#111',
+                    color:cDays.includes(i)?'#000':'#555',fontWeight:'bold'
                   }}>{d}</button>
                 ))}
               </div>
@@ -1872,8 +1993,29 @@ function ClassToday({ classes, onManage }) {
         <p style={{...mono,fontSize:10,color:'#22c55e',letterSpacing:3,marginBottom:8,fontWeight:'bold'}}>TODAY</p>
         {tod.map((c,i)=>(
           <div key={i} style={{background:'#1a2a1a',border:'2px solid #2a4a2a',borderRadius:8,padding:12,marginBottom:8}}>
-            <p style={{...mono,fontSize:13,color:'#22c55e',fontWeight:'bold'}}>{c.code} <span style={{color:'#4ade80',fontWeight:'normal',fontSize:12}}>{c.name}</span></p>
-            {c.time&&<p style={{...mono,fontSize:11,color:'#888',marginTop:3,fontWeight:'500'}}>🕐 {c.time}{c.location?` · ${c.location}`:''}</p>}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'start'}}>
+              <div style={{flex:1}}>
+                <p style={{...mono,fontSize:14,color:'#22c55e',fontWeight:'bold'}}>{c.code} <span style={{color:'#4ade80',fontWeight:'normal',fontSize:13}}>{c.name}</span></p>
+                {c.time&&<p style={{...mono,fontSize:12,color:'#888',marginTop:3,fontWeight:'500'}}>🕐 {c.time}{c.location?` · ${c.location}`:''}</p>}
+              </div>
+              {c.link && (
+                <a 
+                  href={c.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    fontSize:18,
+                    textDecoration:'none',
+                    cursor:'pointer',
+                    marginLeft:8
+                  }}
+                  title="Open course page"
+                >
+                  🔗
+                </a>
+              )}
+            </div>
           </div>
         ))}
       </>}
