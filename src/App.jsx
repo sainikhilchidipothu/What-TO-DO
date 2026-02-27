@@ -633,7 +633,21 @@ function MRow({ children, style={} }) { return <div style={{display:'flex',gap:1
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [state, setStateRaw] = useState(() => {
-    try { const s = localStorage.getItem(STORAGE_KEY); return s ? {...DEFAULT_STATE,...JSON.parse(s)} : DEFAULT_STATE }
+    try { 
+      const s = localStorage.getItem(STORAGE_KEY)
+      if (!s) return DEFAULT_STATE
+      
+      const loadedState = {...DEFAULT_STATE,...JSON.parse(s)}
+      
+      // Calculate XP from previously completed tasks if not already calculated
+      if (loadedState.xp === 0 || loadedState.xp === undefined) {
+        const completedTasksCount = loadedState.tasks.filter(t => t.done).length
+        loadedState.xp = completedTasksCount * 10
+        loadedState.level = Math.floor(loadedState.xp / 100) + 1
+      }
+      
+      return loadedState
+    }
     catch { return DEFAULT_STATE }
   })
 
@@ -1203,14 +1217,11 @@ export default function App() {
 
         {/* XP & Level */}
         <div style={{padding:'14px 18px',borderBottom:'2px solid #444',background:'#1a1a1a'}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-            <div>
-              <p style={{...mono,fontSize:11,letterSpacing:2,color:'#aaa',fontWeight:'bold'}}>LEVEL {state.level}</p>
-              <p style={{...mono,fontSize:10,color:'#666',marginTop:2}}>
-                {state.xp % 100} / 100 XP
-              </p>
-            </div>
-            <div style={{fontSize:26}}>⭐</div>
+          <div style={{marginBottom:8}}>
+            <p style={{...mono,fontSize:11,letterSpacing:2,color:'#aaa',fontWeight:'bold'}}>LEVEL {state.level}</p>
+            <p style={{...mono,fontSize:10,color:'#666',marginTop:2}}>
+              {state.xp % 100} / 100 XP
+            </p>
           </div>
           <div style={{height:6,background:'#222',borderRadius:3,overflow:'hidden'}}>
             <div style={{
@@ -1413,8 +1424,8 @@ export default function App() {
                 onMouseLeave={e=>e.currentTarget.style.background='#222'}
               >
                 {showCompletedTasks 
-                  ? '▲ SHOW LESS' 
-                  : `▼ SHOW ${completedTasksList.length - Math.max(0, 5 - pendingTasksList.length)} MORE COMPLETED`
+                  ? '− SHOW LESS' 
+                  : `+ SHOW ${completedTasksList.length - Math.max(0, 5 - pendingTasksList.length)} MORE COMPLETED`
                 }
               </button>
             )}
