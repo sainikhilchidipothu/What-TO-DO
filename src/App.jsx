@@ -1135,7 +1135,7 @@ export default function App() {
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{display:'flex',flexDirection:'row',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:"'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",overflow:'hidden'}} className="app-container">>
+    <div style={{display:'flex',flexDirection:'row',height:'100vh',background:'#1a1a1a',color:'#ffffff',fontFamily:"'Epilogue', -apple-system, BlinkMacSystemFont, sans-serif",overflow:'hidden'}} className="app-container">
 
       {/* ── FIRST-TIME SETUP ── */}
       {showFirstTimeSetup && (
