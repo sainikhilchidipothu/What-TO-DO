@@ -48,10 +48,6 @@ npm run build
 - `← →` to navigate months
 - `Esc` to go back or close
 
-## Screenshots
-
-_(coming soon)_
-
 ## Feedback
 
 Found a bug or have a suggestion? Open an issue or send a PR.
