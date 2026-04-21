@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  * { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   body {
-    background: #000;
+    background: #1a1a1a;
     color: #fff;
     font-family: 'Epilogue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 500;
@@ -19,71 +19,22 @@
     height: 100vh;
   }
 
-  ::-webkit-scrollbar { width: 4px; }
+  /* Accessible focus ring - visible but not obnoxious */
+  :focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default focus on mouse clicks */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: #0a0a0a; }
-  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-}
-
-@layer components {
-  .mono { 
-    font-family: 'Epilogue', sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-  }
-
-  .btn-green {
-    @apply bg-emerald-400 text-black cursor-pointer transition-all duration-150;
-    font-family: 'Epilogue', sans-serif;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-  }
-  .btn-green:hover { @apply bg-emerald-300; }
-
-  .card {
-    @apply bg-zinc-900 border border-zinc-800 rounded-lg;
-  }
-
-  .input {
-    @apply w-full bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2 text-sm outline-none transition-colors;
-    font-family: 'Epilogue', sans-serif;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-  .input:focus { @apply border-emerald-400; }
-
-  .overlay {
-    @apply fixed inset-0 bg-black/80 flex items-center justify-center z-50;
-    backdrop-filter: blur(4px);
-  }
-
-  .modal {
-    @apply bg-zinc-950 border border-zinc-800 rounded-xl p-8 w-full max-h-[90vh] overflow-y-auto;
-    max-width: 520px;
-  }
-}
-
-/* Mobile blocker - only show on actual mobile devices */
-.mobile-blocker {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 9999;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  text-align: center;
-}
-
-@media (max-width: 640px) {
-  #root {
-    display: none !important;
-  }
-  
-  .mobile-blocker {
-    display: flex !important;
-  }
+  ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #666; }
 }
 
 /* Blinking urgent task indicator */
@@ -94,4 +45,100 @@
 
 .urgent-blink {
   animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .urgent-blink { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   RESPONSIVE LAYOUT
+   Desktop-first with graceful mobile degradation.
+   The sidebar collapses into a slide-in drawer on narrow screens.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.app-container {
+  flex-direction: row;
+}
+
+/* Mobile: stack vertically, sidebar becomes a drawer */
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out;
+    overflow-y: auto;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-hamburger {
+    display: inline-flex !important;
+  }
+
+  .calendar-title {
+    min-width: 0 !important;
+    font-size: 16px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .main-content {
+    padding: 16px !important;
+  }
+
+  .header-nav {
+    padding: 0 12px !important;
+    height: 60px !important;
+  }
+
+  .macro-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .micro-layout {
+    flex-direction: column !important;
+  }
+
+  .micro-detail {
+    width: 100% !important;
+  }
+}
+
+/* Small tablet breakpoint */
+@media (max-width: 1200px) and (min-width: 901px) {
+  .sidebar {
+    width: 280px !important;
+    min-width: 280px !important;
+  }
+
+  .macro-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
