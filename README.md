@@ -8,12 +8,15 @@ A personal productivity tracker to keep your daily routine in one place. Goals, 
 
 - **Goals & habits** with streaks, categories, and daily check-ins
 - **Tasks** with priority, due dates, subtasks, and class linking
+- **Semester setup** so class indicators stay inside the dates you set
 - **Class schedule** that shows today's classes at a glance
 - **Pomodoro timer** with focus and break sessions
 - **Daily journal** for each day
 - **Year & month calendar views** with completion heatmap
 - **Vacation mode** to pause tracking during breaks
 - **XP & levels**, earn XP for completing tasks
+- **Keyboard shortcuts** for power users
+- **Responsive design** that works on desktop, tablet, and mobile
 - **Offline-first**, everything saves to your browser. No sign-up, no account, no tracking.
 
 ## Tech Stack
@@ -21,6 +24,7 @@ A personal productivity tracker to keep your daily routine in one place. Goals, 
 - React 18
 - Vite
 - Tailwind CSS
+- Vitest for testing
 - localStorage for persistence
 
 ## Run Locally
@@ -40,6 +44,12 @@ Open `http://localhost:5173` in your browser.
 npm run build
 ```
 
+## Run Tests
+
+```bash
+npm test
+```
+
 ## Keyboard Shortcuts
 
 - `Ctrl+N` for a new goal
@@ -47,6 +57,23 @@ npm run build
 - `Ctrl+J` for a new journal entry
 - `← →` to navigate months
 - `Esc` to go back or close
+
+## Project Structure
+
+```
+src/
+├── components/   # UI components
+├── hooks/        # Custom React hooks
+├── utils/        # Pure helpers (dates, streaks, semester logic)
+├── __tests__/    # Unit tests
+├── App.jsx       # App orchestrator
+├── theme.js      # Shared style tokens
+└── constants.js  # App constants
+```
+
+## Screenshots
+
+_(coming soon)_
 
 ## Feedback
 
