@@ -85,8 +85,8 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                   )
                 }
 
-                const bg = done > 0 ? compBg(pct) : isTod ? '#3f3f46' : '#0f0f11'
-                const borderColor = isTar ? '#eab308' : isTod ? '#71717a' : '#27272a'
+                const bg = done > 0 ? compBg(pct) : isTod ? '#3f3f3f' : '#121212'
+                const borderColor = isTar ? '#eab308' : isTod ? '#71717a' : '#2b2b2b'
                 const borderWidth = isTar ? 3 : 2
 
                 return (
