@@ -30,7 +30,7 @@ export function IntroScreen({ targetDate, remaining, onContinue }) {
       <button
         onClick={go}
         autoFocus
-        className="px-16 py-4 bg-accent hover:bg-indigo-300 text-zinc-950 border-none rounded-lg cursor-pointer font-sans text-sm tracking-[0.4em] font-black transition-colors duration-150"
+        className="px-16 py-4 bg-accent hover:bg-zinc-200 text-zinc-950 border-none rounded-lg cursor-pointer font-sans text-sm tracking-[0.4em] font-black transition-colors duration-150"
       >
         START
       </button>
