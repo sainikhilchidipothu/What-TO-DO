@@ -5,7 +5,7 @@ const BTN_BASE =
   'px-5 py-2.5 rounded-lg font-sans text-[11px] tracking-[0.2em] font-bold uppercase transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer'
 
 const BTN_VARIANTS = {
-  primary: 'bg-accent text-zinc-950 hover:bg-indigo-300',
+  primary: 'bg-accent text-zinc-950 hover:bg-zinc-200',
   ghost: 'bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700/70 hover:text-white',
   danger: 'bg-red-950/50 text-red-400 border-2 border-red-500/70 hover:bg-red-950 hover:border-red-500',
 }
