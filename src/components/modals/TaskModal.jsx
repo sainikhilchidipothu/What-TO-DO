@@ -69,8 +69,8 @@ export function TaskModal({ editId, initial, classes, onClose, onSave }) {
             aria-checked={tier === v}
             onClick={() => setTier(v)}
             style={{
-              borderColor: tier === v ? c : '#27272a',
-              background: tier === v ? c + '22' : '#18181b',
+              borderColor: tier === v ? c : '#2b2b2b',
+              background: tier === v ? c + '22' : '#252525',
               color: tier === v ? c : '#a1a1aa',
             }}
             className={`flex-1 py-2.5 rounded-md border cursor-pointer font-sans text-[10px] transition-all duration-150 ${tier === v ? 'font-bold' : 'font-normal'}`}
