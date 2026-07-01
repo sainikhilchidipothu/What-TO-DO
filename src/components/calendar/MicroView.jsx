@@ -73,8 +73,8 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
               )
             }
 
-            const bg = isSel ? '#27272a' : isTar ? '#2a2410' : done > 0 ? compBg(pct) : '#18181b'
-            const border = isSel ? '#818cf8' : isTar ? '#eab308' : isTod ? '#a1a1aa' : '#3f3f46'
+            const bg = isSel ? '#2b2b2b' : isTar ? '#2a2410' : done > 0 ? compBg(pct) : '#252525'
+            const border = isSel ? '#ffffff' : isTar ? '#eab308' : isTod ? '#a1a1aa' : '#3f3f3f'
             return (
               <button
                 key={d}
