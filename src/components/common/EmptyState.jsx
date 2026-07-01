@@ -15,7 +15,7 @@ export function EmptyState({ icon, title, description, shortcut, ctaLabel, onCta
       </p>
       <button
         onClick={onCta}
-        className="w-full px-3.5 py-2.5 bg-accent hover:bg-indigo-300 text-zinc-950 border-none rounded-lg cursor-pointer font-sans text-xs font-bold tracking-wider transition-colors duration-150"
+        className="w-full px-3.5 py-2.5 bg-accent hover:bg-zinc-200 text-zinc-950 border-none rounded-lg cursor-pointer font-sans text-xs font-bold tracking-wider transition-colors duration-150"
       >
         {ctaLabel}
       </button>
