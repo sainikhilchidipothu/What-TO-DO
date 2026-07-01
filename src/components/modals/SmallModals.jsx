@@ -350,7 +350,7 @@ export function FirstTimeSetup({ onComplete }) {
           onClick={() => goalDate && onComplete(goalDate)}
           disabled={!goalDate}
           className={`px-10 py-3 border-none rounded-lg font-sans text-[13px] tracking-wider font-black transition-colors duration-150 ${
-            goalDate ? 'bg-accent hover:bg-indigo-300 text-zinc-950 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+            goalDate ? 'bg-accent hover:bg-zinc-200 text-zinc-950 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
           }`}
         >
           GET STARTED
