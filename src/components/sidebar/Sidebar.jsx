@@ -78,7 +78,7 @@ export function Sidebar({
         >
           <div
             style={{ width: `${state.xp % 100}%` }}
-            className="h-full bg-gradient-to-r from-accent to-indigo-500 transition-[width] duration-500 ease-out"
+            className="h-full bg-white transition-[width] duration-500 ease-out"
           />
         </div>
       </div>
