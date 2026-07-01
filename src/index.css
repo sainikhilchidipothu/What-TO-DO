@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: #09090b;
+    color: #fff;
+    font-family: 'Epilogue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* Accessible focus ring - visible but not obnoxious */
+  :focus-visible {
+    outline: 2px solid #818cf8;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default focus on mouse clicks */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #09090b; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+}
+
+/* Blinking urgent task indicator */
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.3; }
+}
+
+.urgent-blink {
+  animation: blink 2s ease-in-out infinite;
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .urgent-blink { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   RESPONSIVE LAYOUT
+   Desktop-first with graceful mobile degradation.
+   The sidebar collapses into a slide-in drawer on narrow screens.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.app-container {
+  flex-direction: row;
+}
+
+/* Mobile: stack vertically, sidebar becomes a drawer */
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-out;
+    overflow-y: auto;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-hamburger {
+    display: inline-flex !important;
+  }
+
+  .calendar-title {
+    min-width: 0 !important;
+    font-size: 16px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .main-content {
+    padding: 16px !important;
+  }
+
+  .header-nav {
+    padding: 0 12px !important;
+    height: 60px !important;
+  }
+
+  .macro-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .micro-layout {
+    flex-direction: column !important;
+  }
+
+  .micro-detail {
+    width: 100% !important;
+  }
+}
+
+/* Small tablet breakpoint */
+@media (max-width: 1200px) and (min-width: 901px) {
+  .sidebar {
+    width: 280px !important;
+    min-width: 280px !important;
+  }
+
+  .macro-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
