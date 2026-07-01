@@ -87,7 +87,7 @@ export function DayPreviewCard({ dateKey, state, position }) {
   )
 }
 
-function Row({ icon, color, label, bg = 'rgba(39,39,42,0.6)', borderColor = '#3f3f46' }) {
+function Row({ icon, color, label, bg = 'rgba(43,43,43,0.6)', borderColor = '#3f3f3f' }) {
   return (
     <div style={{ background: bg, borderColor }} className="flex items-center gap-2.5 mb-2.5 px-2.5 py-2 rounded-lg border-2">
       <span className="text-base" aria-hidden="true">{icon}</span>
