@@ -23,7 +23,7 @@ export function Heatmap({ history, habits, year }) {
     p >= 1 ? '#22c55e' :
     p >= 0.75 ? '#4ade80' :
     p >= 0.5 ? '#eab308' :
-    p > 0 ? '#ef4444' : '#27272a'
+    p > 0 ? '#ef4444' : '#2b2b2b'
 
   return (
     <div>
@@ -45,7 +45,7 @@ export function Heatmap({ history, habits, year }) {
         )}
       </div>
       <div className="flex gap-4 mt-3.5 flex-wrap">
-        {[['#22c55e', '100%'], ['#eab308', '50%+'], ['#ef4444', '<50%'], ['#27272a', 'None']].map(([bg, l]) => (
+        {[['#22c55e', '100%'], ['#eab308', '50%+'], ['#ef4444', '<50%'], ['#2b2b2b', 'None']].map(([bg, l]) => (
           <div key={l} className="flex items-center gap-1.5">
             <div style={{ background: bg }} className="w-2.5 h-2.5 rounded border border-zinc-800" />
             <span className="font-sans text-[11px] text-zinc-400 font-medium">{l}</span>
