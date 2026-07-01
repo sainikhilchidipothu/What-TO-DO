@@ -80,13 +80,13 @@ export function Pomodoro({ presets, setPresets, onSessionComplete }) {
       <div className="flex justify-center mb-[18px]">
         <div className="relative w-[140px] h-[140px]">
           <svg width={140} height={140} className="-rotate-90" aria-hidden="true">
-            <circle cx={70} cy={70} r={60} fill="none" stroke="#3f3f46" strokeWidth={10} />
+            <circle cx={70} cy={70} r={60} fill="none" stroke="#3f3f3f" strokeWidth={10} />
             <circle
               cx={70}
               cy={70}
               r={60}
               fill="none"
-              stroke="#818cf8"
+              stroke="#ffffff"
               strokeWidth={10}
               strokeDasharray={C}
               strokeDashoffset={C * (1 - pct)}
