@@ -43,7 +43,7 @@ export function GoalsList({
           <button
             onClick={onAdd}
             aria-label="Add new goal"
-            className="w-[30px] h-[30px] rounded-md border-none cursor-pointer bg-accent hover:bg-indigo-300 text-zinc-950 font-sans text-lg font-bold leading-[28px] p-0 transition-colors duration-150"
+            className="w-[30px] h-[30px] rounded-md border-none cursor-pointer bg-accent hover:bg-zinc-200 text-zinc-950 font-sans text-lg font-bold leading-[28px] p-0 transition-colors duration-150"
           >
             +
           </button>
