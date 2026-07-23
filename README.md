@@ -73,10 +73,6 @@ src/
 └── constants.js  # App constants
 ```
 
-## Screenshots
-
-_(coming soon)_
-
 ## Feedback
 
 Found a bug or have a suggestion? Open an issue or send a PR.
