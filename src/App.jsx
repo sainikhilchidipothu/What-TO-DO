@@ -293,13 +293,18 @@ export default function App() {
   // ── SEMESTER ─────────────────────────────────────────────────────────────
   const saveSemester = (data) => {
     setState((prev) => {
+      const currentSemesterId = prev.currentSemesterId || 'legacy-semester'
+      const hasCurrentClasses = prev.classes.some(
+        (c) => (c.semesterId || 'legacy-semester') === currentSemesterId
+      )
       const isNewSemester =
-        prev.semesterActive &&
-        (prev.semesterName !== data.semesterName ||
+        data.semesterActive &&
+        hasCurrentClasses &&
+        (!prev.semesterActive ||
+          prev.semesterName !== data.semesterName ||
           prev.semesterStart !== data.semesterStart ||
           prev.semesterEnd !== data.semesterEnd)
-      const currentSemesterId = isNewSemester ? uid() : (prev.currentSemesterId || 'legacy-semester')
-      return { ...prev, ...data, currentSemesterId }
+      return { ...prev, ...data, currentSemesterId: isNewSemester ? uid() : currentSemesterId }
     })
     close()
     showToast(data.semesterActive ? 'Semester saved 🎓' : 'Semester updated')
