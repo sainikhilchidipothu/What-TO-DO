@@ -374,7 +374,7 @@ export default function App() {
 
   const editingHabit = editId ? state.habits.find((h) => h.id === editId) : null
   const editingTask = editId ? state.tasks.find((t) => t.id === editId) : null
-  const editingClass = editCId ? activeClasses.find((c) => c.id === editCId) : null
+  const editingClass = editCId ? state.classes.find((c) => c.id === editCId) : null
 
   // Build the "initial" object for the task modal from the editingTask
   let taskInitial = null
@@ -565,7 +565,7 @@ export default function App() {
       )}
       {modal === 'classes' && (
         <ClassesModal
-          classes={activeClasses}
+          classes={state.classes}
           onClose={close}
           onAdd={() => openClass()}
           onEdit={(id) => openClass(id)}

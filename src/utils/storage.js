@@ -1,7 +1,7 @@
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
 // Localstorage wrapper with a light migration pass for older saved states.
 
-import { STORAGE_KEY, DEFAULT_STATE } from '../constants.js'
+import { STORAGE_KEY, DEFAULT_STATE, SPRING_2026_SEMESTER } from '../constants.js'
 
 export const loadState = () => {
   try {
@@ -18,9 +18,13 @@ export const loadState = () => {
       endDate: next.semesterEnd || '',
       active: !!next.semesterActive,
     }
-    const semesters = (next.semesters || []).some((s) => s.id === currentSemesterId)
-      ? next.semesters
-      : [...(next.semesters || []), configuredSemester]
+    const semesters = [...(next.semesters || [])]
+    if (!semesters.some((s) => s.id === SPRING_2026_SEMESTER.id)) {
+      semesters.push(SPRING_2026_SEMESTER)
+    }
+    if (!semesters.some((s) => s.id === currentSemesterId)) {
+      semesters.push(configuredSemester)
+    }
 
     // Classes created before semester ownership existed belong to the
     // currently configured semester and must not be lost during migration.
@@ -94,12 +98,17 @@ export const importFromFile = (file) =>
           endDate: next.semesterEnd || '',
           active: !!next.semesterActive,
         }
+        const semesters = [...(next.semesters || [])]
+        if (!semesters.some((s) => s.id === SPRING_2026_SEMESTER.id)) {
+          semesters.push(SPRING_2026_SEMESTER)
+        }
+        if (!semesters.some((s) => s.id === currentSemesterId)) {
+          semesters.push(configuredSemester)
+        }
         resolve({
           ...next,
           currentSemesterId,
-          semesters: (next.semesters || []).some((s) => s.id === currentSemesterId)
-            ? next.semesters
-            : [...(next.semesters || []), configuredSemester],
+          semesters,
           classes: (next.classes || []).map((c) => ({
             ...c,
             semesterId: c.semesterId || currentSemesterId,

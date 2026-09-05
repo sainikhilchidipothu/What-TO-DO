@@ -31,6 +31,14 @@ export const CAT_COLORS = {
 export const HOURS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 export const MINUTES  = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
+export const SPRING_2026_SEMESTER = {
+  id: 'spring-2026',
+  name: 'Spring 2026',
+  startDate: '2026-01-06',
+  endDate: '2026-05-01',
+  active: false,
+}
+
 export const DEFAULT_STATE = {
   habits: [],    // { id, name, category, specificDays, pinned, startDate? } — startDate gates tracking to that date onward
 
@@ -50,7 +58,7 @@ export const DEFAULT_STATE = {
   // Classes are retained across semesters, but each class belongs to one
   // semester scope so changing semesters never mixes old and new schedules.
   currentSemesterId: 'legacy-semester',
-  semesters: [],    // { id, name, startDate, endDate, active }
+  semesters: [SPRING_2026_SEMESTER], // { id, name, startDate, endDate, active }
   classes: [],    // { id, semesterId, code, name, days, time, location, color, link }
   timerPresets: { focus: 25, shortBreak: 5 },
   vacationMode: { active: false, startDate: null, endDate: null },

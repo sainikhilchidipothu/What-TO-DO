@@ -202,6 +202,11 @@ export function ClassesModal({ classes, onClose, onAdd, onEdit, onDelete }) {
               <p className="font-sans text-[9px] text-zinc-500 mt-1">
                 {(c.days || []).map((d) => DAYS_SHORT[d]).join(' · ')}
               </p>
+              {c.semesterId && (
+                <p className="font-sans text-[9px] text-emerald-500 mt-1">
+                  {c.semesterId === 'spring-2026' ? 'Spring 2026' : c.semesterId}
+                </p>
+              )}
             </div>
             <div className="flex gap-1.5">
               <button onClick={() => onEdit(c.id)} aria-label={`Edit ${c.name}`} className="font-sans text-[11px] px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-200 bg-transparent border-none cursor-pointer">✎</button>
