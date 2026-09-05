@@ -47,8 +47,10 @@ export const DEFAULT_STATE = {
   semesterEnd: '',
   semesterName: '',
   semesterActive: false,
-  // ───────────────────────────────────────────────────────────────────────
-  classes: [],    // { id, code, name, days, time, location, color, link }
+  // Classes are retained across semesters, but each class belongs to one
+  // semester scope so changing semesters never mixes old and new schedules.
+  currentSemesterId: 'legacy-semester',
+  classes: [],    // { id, semesterId, code, name, days, time, location, color, link }
   timerPresets: { focus: 25, shortBreak: 5 },
   vacationMode: { active: false, startDate: null, endDate: null },
   vacationHistory: [],
