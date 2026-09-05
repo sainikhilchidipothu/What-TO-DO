@@ -218,22 +218,42 @@ export function ClassesModal({ classes, onClose, onAdd, onEdit, onDelete }) {
 }
 
 // ─── Class form modal ─────────────────────────────────────────────────────────
-export function ClassFormModal({ editId, initial, onBack, onSave }) {
+export function ClassFormModal({ editId, initial, semesters = [], currentSemesterId, onBack, onSave }) {
   const [code, setCode] = useState(initial?.code || '')
   const [name, setName] = useState(initial?.name || '')
   const [time, setTime] = useState(initial?.time || '')
   const [loc, setLoc] = useState(initial?.location || '')
   const [days, setDays] = useState(initial?.days || [])
   const [link, setLink] = useState(initial?.link || '')
+  const [semesterId, setSemesterId] = useState(initial?.semesterId || currentSemesterId || '')
 
   const handleSave = () => {
     if (!name.trim() || !days.length) return
-    onSave({ code, name: name.trim(), time, location: loc, days: [...days].sort(), link })
+    onSave({ code, name: name.trim(), time, location: loc, days: [...days].sort(), link, semesterId })
   }
 
   return (
     <ModalShell onClose={onBack}>
       <MTitle>{editId ? 'EDIT CLASS' : 'ADD CLASS'}</MTitle>
+      <MLabel htmlFor="class-semester">SEMESTER</MLabel>
+      <select
+        id="class-semester"
+        value={semesterId}
+        onChange={(e) => setSemesterId(e.target.value)}
+        className={`${INPUT} mb-2.5 text-[13px]`}
+        disabled={!semesters.length}
+      >
+        {semesters.length === 0 && <option value={currentSemesterId}>Current semester</option>}
+        {semesters.map((semester) => (
+          <option key={semester.id} value={semester.id}>
+            {semester.name || 'Unnamed semester'}
+            {semester.startDate && semester.endDate ? ` · ${semester.startDate} → ${semester.endDate}` : ''}
+          </option>
+        ))}
+      </select>
+      <p className="font-sans text-[10px] text-zinc-500 mb-3">
+        Choose which semester this class belongs to. It will only appear when that semester is selected.
+      </p>
       <div className="grid gap-2.5 mb-2.5" style={{ gridTemplateColumns: '1fr 2fr' }}>
         <div>
           <MLabel htmlFor="class-code">CODE</MLabel>

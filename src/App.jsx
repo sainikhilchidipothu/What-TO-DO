@@ -89,6 +89,7 @@ export default function App() {
   const vm = state.vacationMode
   const activeClasses = state.classes.filter((c) => c.semesterId === state.currentSemesterId)
   const viewState = { ...state, classes: activeClasses }
+  const semesters = state.semesters || []
 
   // ── Modal helpers ────────────────────────────────────────────────────────
   const close = useCallback(() => { setModal(null); setEditId(null); setEditCId(null) }, [])
@@ -246,7 +247,7 @@ export default function App() {
 
   // ── CLASS ────────────────────────────────────────────────────────────────
   const saveClass = (data) => {
-    const cls = { id: editCId || uid(), semesterId: state.currentSemesterId, ...data }
+    const cls = { id: editCId || uid(), semesterId: data.semesterId || state.currentSemesterId, ...data }
     setState((prev) =>
       editCId
         ? { ...prev, classes: prev.classes.map((c) => (c.id === editCId ? cls : c)) }
@@ -294,17 +295,27 @@ export default function App() {
   const saveSemester = (data) => {
     setState((prev) => {
       const currentSemesterId = prev.currentSemesterId || 'legacy-semester'
-      const hasCurrentClasses = prev.classes.some(
-        (c) => (c.semesterId || 'legacy-semester') === currentSemesterId
-      )
       const isNewSemester =
         data.semesterActive &&
-        hasCurrentClasses &&
         (!prev.semesterActive ||
           prev.semesterName !== data.semesterName ||
           prev.semesterStart !== data.semesterStart ||
           prev.semesterEnd !== data.semesterEnd)
-      return { ...prev, ...data, currentSemesterId: isNewSemester ? uid() : currentSemesterId }
+      const nextId = isNewSemester ? uid() : currentSemesterId
+      const record = {
+        id: nextId,
+        name: data.semesterName || 'Unnamed semester',
+        startDate: data.semesterStart,
+        endDate: data.semesterEnd,
+        active: data.semesterActive,
+      }
+      const existing = (prev.semesters || []).filter((s) => s.id !== nextId)
+      return {
+        ...prev,
+        ...data,
+        currentSemesterId: nextId,
+        semesters: [...existing, record],
+      }
     })
     close()
     showToast(data.semesterActive ? 'Semester saved 🎓' : 'Semester updated')
@@ -565,6 +576,8 @@ export default function App() {
         <ClassFormModal
           editId={editCId}
           initial={editingClass}
+          semesters={semesters}
+          currentSemesterId={state.currentSemesterId}
           onBack={() => { setEditCId(null); setModal('classes') }}
           onSave={saveClass}
         />

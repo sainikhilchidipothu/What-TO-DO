@@ -11,10 +11,21 @@ export const loadState = () => {
     const parsed = JSON.parse(raw)
     const next = { ...DEFAULT_STATE, ...parsed }
     const currentSemesterId = next.currentSemesterId || 'legacy-semester'
+    const configuredSemester = {
+      id: currentSemesterId,
+      name: next.semesterName || 'Current semester',
+      startDate: next.semesterStart || '',
+      endDate: next.semesterEnd || '',
+      active: !!next.semesterActive,
+    }
+    const semesters = (next.semesters || []).some((s) => s.id === currentSemesterId)
+      ? next.semesters
+      : [...(next.semesters || []), configuredSemester]
 
     // Classes created before semester ownership existed belong to the
     // currently configured semester and must not be lost during migration.
     next.currentSemesterId = currentSemesterId
+    next.semesters = semesters
     next.classes = (next.classes || []).map((c) => ({
       ...c,
       semesterId: c.semesterId || currentSemesterId,
@@ -76,9 +87,19 @@ export const importFromFile = (file) =>
         const parsed = JSON.parse(ev.target.result)
         const next = { ...DEFAULT_STATE, ...parsed }
         const currentSemesterId = next.currentSemesterId || 'legacy-semester'
+        const configuredSemester = {
+          id: currentSemesterId,
+          name: next.semesterName || 'Current semester',
+          startDate: next.semesterStart || '',
+          endDate: next.semesterEnd || '',
+          active: !!next.semesterActive,
+        }
         resolve({
           ...next,
           currentSemesterId,
+          semesters: (next.semesters || []).some((s) => s.id === currentSemesterId)
+            ? next.semesters
+            : [...(next.semesters || []), configuredSemester],
           classes: (next.classes || []).map((c) => ({
             ...c,
             semesterId: c.semesterId || currentSemesterId,
