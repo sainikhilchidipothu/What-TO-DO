@@ -10,6 +10,15 @@ export const loadState = () => {
 
     const parsed = JSON.parse(raw)
     const next = { ...DEFAULT_STATE, ...parsed }
+    const currentSemesterId = next.currentSemesterId || 'legacy-semester'
+
+    // Classes created before semester ownership existed belong to the
+    // currently configured semester and must not be lost during migration.
+    next.currentSemesterId = currentSemesterId
+    next.classes = (next.classes || []).map((c) => ({
+      ...c,
+      semesterId: c.semesterId || currentSemesterId,
+    }))
 
     // Migration: retroactively compute XP from already-completed tasks
     // for users who loaded pre-XP saves.
@@ -65,7 +74,16 @@ export const importFromFile = (file) =>
     reader.onload = (ev) => {
       try {
         const parsed = JSON.parse(ev.target.result)
-        resolve({ ...DEFAULT_STATE, ...parsed })
+        const next = { ...DEFAULT_STATE, ...parsed }
+        const currentSemesterId = next.currentSemesterId || 'legacy-semester'
+        resolve({
+          ...next,
+          currentSemesterId,
+          classes: (next.classes || []).map((c) => ({
+            ...c,
+            semesterId: c.semesterId || currentSemesterId,
+          })),
+        })
       } catch (err) {
         reject(err)
       }

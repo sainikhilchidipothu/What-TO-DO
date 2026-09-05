@@ -1,9 +1,7 @@
 // ─── SEMESTER HELPERS ─────────────────────────────────────────────────────────
-// The semester feature constrains class display to a date range.
-// A class's day-of-week match is only meaningful when the date also falls
-// inside an active semester; otherwise the calendar shows class indicators
-// on every matching weekday across the entire year, which is what the
-// user wanted to fix.
+// The semester feature constrains class display to a date range. App.jsx
+// supplies only classes from the current semester, so old schedules remain
+// stored without appearing in the new semester.
 
 import { todayKey } from './date.js'
 import { habitAppliesOn } from './helpers.js'

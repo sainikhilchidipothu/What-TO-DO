@@ -87,6 +87,8 @@ export default function App() {
   const uniqueCats = [...new Set(state.habits.map((h) => h.category).filter(Boolean))]
   const urgentTasks = useUrgentTasks(state.tasks)
   const vm = state.vacationMode
+  const activeClasses = state.classes.filter((c) => c.semesterId === state.currentSemesterId)
+  const viewState = { ...state, classes: activeClasses }
 
   // ── Modal helpers ────────────────────────────────────────────────────────
   const close = useCallback(() => { setModal(null); setEditId(null); setEditCId(null) }, [])
@@ -244,7 +246,7 @@ export default function App() {
 
   // ── CLASS ────────────────────────────────────────────────────────────────
   const saveClass = (data) => {
-    const cls = { id: editCId || uid(), ...data }
+    const cls = { id: editCId || uid(), semesterId: state.currentSemesterId, ...data }
     setState((prev) =>
       editCId
         ? { ...prev, classes: prev.classes.map((c) => (c.id === editCId ? cls : c)) }
@@ -290,7 +292,15 @@ export default function App() {
 
   // ── SEMESTER ─────────────────────────────────────────────────────────────
   const saveSemester = (data) => {
-    setState((prev) => ({ ...prev, ...data }))
+    setState((prev) => {
+      const isNewSemester =
+        prev.semesterActive &&
+        (prev.semesterName !== data.semesterName ||
+          prev.semesterStart !== data.semesterStart ||
+          prev.semesterEnd !== data.semesterEnd)
+      const currentSemesterId = isNewSemester ? uid() : (prev.currentSemesterId || 'legacy-semester')
+      return { ...prev, ...data, currentSemesterId }
+    })
     close()
     showToast(data.semesterActive ? 'Semester saved 🎓' : 'Semester updated')
   }
@@ -299,6 +309,9 @@ export default function App() {
     setState((prev) => ({
       ...prev,
       semesterName: '', semesterStart: '', semesterEnd: '', semesterActive: false,
+      // Start a fresh class scope after clearing, while retaining the old
+      // semester's classes in storage for historical backups.
+      currentSemesterId: uid(),
     }))
     close()
     showToast('Semester cleared')
@@ -345,7 +358,7 @@ export default function App() {
 
   const editingHabit = editId ? state.habits.find((h) => h.id === editId) : null
   const editingTask = editId ? state.tasks.find((t) => t.id === editId) : null
-  const editingClass = editCId ? state.classes.find((c) => c.id === editCId) : null
+  const editingClass = editCId ? activeClasses.find((c) => c.id === editCId) : null
 
   // Build the "initial" object for the task modal from the editingTask
   let taskInitial = null
@@ -376,7 +389,7 @@ export default function App() {
       )}
 
       <Sidebar
-        state={state}
+        state={viewState}
         year={calY}
         remaining={remaining}
         uniqueCats={uniqueCats}
@@ -475,13 +488,13 @@ export default function App() {
           {view === 'macro' ? (
             <MacroView
               year={calY}
-              state={state}
+              state={viewState}
               onMonth={(m) => { setCalM(m); setView('micro') }}
               onHover={(date, pos) => { setHoverDate(date); setHoverPos(pos) }}
               onHoverEnd={() => setHoverDate(null)}
             />
           ) : (
-            <MicroView year={calY} month={calM} state={state} onToggle={toggleHist} onJournal={openJournal} />
+            <MicroView year={calY} month={calM} state={viewState} onToggle={toggleHist} onJournal={openJournal} />
           )}
         </div>
       </main>
@@ -536,7 +549,7 @@ export default function App() {
       )}
       {modal === 'classes' && (
         <ClassesModal
-          classes={state.classes}
+          classes={activeClasses}
           onClose={close}
           onAdd={() => openClass()}
           onEdit={(id) => openClass(id)}
@@ -552,7 +565,7 @@ export default function App() {
         />
       )}
       {modal === 'semester' && (
-        <SemesterModal state={state} onClose={close} onSave={saveSemester} onClear={clearSemester} />
+        <SemesterModal state={viewState} onClose={close} onSave={saveSemester} onClear={clearSemester} />
       )}
       {(modal === 'insights' || modal === 'noinsights') && (
         <InsightsModal state={state} onClose={close} />

@@ -1,6 +1,6 @@
 // ─── SemesterModal ────────────────────────────────────────────────────────────
 // Lets the user define a semester window — start date, end date, optional
-// name. When active, classes only display on dates inside this window.
+// name. Saving changed active-semester details starts a new class scope.
 
 import { useState } from 'react'
 import { ModalShell } from '../common/ModalShell.jsx'
@@ -47,10 +47,9 @@ export function SemesterModal({ state, onClose, onSave, onClear }) {
       <MTitle>🎓 SEMESTER SETUP</MTitle>
 
       <p className="font-sans text-[11px] text-zinc-500 mb-5 leading-relaxed">
-        Define a date window for the current semester. When active, class indicators
-        only appear on the calendar inside this window — so adding classes{' '}
-        <em>before</em> setting up a semester won't flood the whole year with book
-        icons.
+        Define a date window for the current semester. Classes are kept separate
+        for each semester, so starting a new one will not bring forward the
+        previous semester's schedule.
       </p>
 
       {/* Active toggle */}
@@ -120,14 +119,14 @@ export function SemesterModal({ state, onClose, onSave, onClear }) {
       )}
 
       {/* Existing classes notice */}
-      {classCount > 0 && !state.semesterActive && (
+      {classCount > 0 && state.semesterActive && (
         <div className="bg-amber-950/20 border border-zinc-800 rounded-lg p-3 mb-4">
           <p className="font-sans text-[11px] text-amber-500 font-bold mb-1">
-            ℹ You have {classCount} class{classCount !== 1 ? 'es' : ''} already added
+            ℹ Starting a new semester will separate {classCount} current class{classCount !== 1 ? 'es' : ''}
           </p>
           <p className="font-sans text-[10px] text-zinc-500 leading-relaxed">
-            They will stay in your class list but will only appear on calendar days
-            inside the semester window you set here.
+            Existing classes will remain attached to this semester. Add the new
+            semester's classes after saving.
           </p>
         </div>
       )}
