@@ -3,6 +3,7 @@
 // color, priority dots for tasks, class/journal indicators. Semester-aware:
 // class indicators only appear on dates inside the active semester window.
 
+import { useEffect, useRef } from 'react'
 import { compBg, compColor, getTaskPriorityColor } from '../../theme.js'
 import { DAYS_SHORT, MONTHS } from '../../constants.js'
 import { isVacDay } from '../../utils/date.js'
@@ -12,6 +13,15 @@ import { habitAppliesOn } from '../../utils/helpers.js'
 export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
   const todStr = new Date().toLocaleDateString('en-CA')
   const vm = state.vacationMode
+  const initialMonthRef = useRef(null)
+  const hasScrolledToCurrentMonth = useRef(false)
+
+  useEffect(() => {
+    if (!hasScrolledToCurrentMonth.current && year === new Date().getFullYear()) {
+      initialMonthRef.current?.scrollIntoView({ block: 'center', behavior: 'instant' })
+      hasScrolledToCurrentMonth.current = true
+    }
+  }, [year])
 
   return (
     <div className="macro-grid grid grid-cols-[repeat(2,minmax(0,1fr))] gap-5 max-w-[1600px] mx-auto">
@@ -34,6 +44,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
         return (
           <button
             key={m}
+            ref={m === new Date().getMonth() && year === new Date().getFullYear() ? initialMonthRef : null}
             onClick={() => onMonth(m)}
             aria-label={`View ${MONTHS[m]} ${year} in detail`}
             className="bg-zinc-900/70 border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/70 rounded-2xl p-6 cursor-pointer transition-all duration-200 text-left shadow-panel font-sans min-w-0"
