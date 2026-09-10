@@ -14,7 +14,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
   const vm = state.vacationMode
 
   return (
-    <div className="macro-grid grid grid-cols-[repeat(3,minmax(0,1fr))] gap-4 max-w-[1600px] mx-auto">
+    <div className="macro-grid grid grid-cols-[repeat(2,minmax(0,1fr))] gap-5 max-w-[1600px] mx-auto">
       {Array.from({ length: 12 }, (_, m) => {
         const dim = new Date(year, m + 1, 0).getDate()
         const off = new Date(year, m, 1).getDay()
