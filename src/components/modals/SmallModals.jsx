@@ -338,9 +338,39 @@ export function InsightsModal({ state, onClose }) {
   )
 }
 
+export function NameModal({ initial, onClose, onSave }) {
+  const [name, setName] = useState(initial || '')
+  const canSave = name.trim().length > 0
+
+  return (
+    <ModalShell onClose={onClose}>
+      <MTitle>YOUR NAME</MTitle>
+      <p className="font-sans text-sm text-zinc-300 leading-relaxed mb-4">
+        This name appears in your welcome message at the top of the app.
+      </p>
+      <MLabel htmlFor="user-name">NAME</MLabel>
+      <input
+        id="user-name"
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && canSave && onSave(name)}
+        placeholder="e.g. Alex"
+        maxLength={40}
+        className={`${INPUT} text-base`}
+      />
+      <MRow className="mt-5">
+        <Btn onClick={onClose} variant="ghost">CANCEL</Btn>
+        <Btn onClick={() => onSave(name)} disabled={!canSave}>SAVE NAME</Btn>
+      </MRow>
+    </ModalShell>
+  )
+}
+
 // ─── First-time setup ────────────────────────────────────────────────────────
-export function FirstTimeSetup({ onComplete }) {
+export function FirstTimeSetup({ initialName, onComplete }) {
   const [goalDate, setGoalDate] = useState('')
+  const [name, setName] = useState(initialName || '')
 
   return (
     <div
@@ -354,10 +384,23 @@ export function FirstTimeSetup({ onComplete }) {
         <h1 id="first-time-title" className="font-sans text-2xl font-black tracking-wide text-white mb-2">
           WELCOME TO WHAT-TO-DO
         </h1>
-        <p className="text-sm text-zinc-400 leading-relaxed mb-5">
+        <p className="text-base text-zinc-300 leading-relaxed mb-5">
           Let's get started! First, set your target goal date.<br />
           This will help you track your progress and stay motivated.
         </p>
+
+        <div className="mb-5 text-left">
+          <MLabel htmlFor="setup-name">WHAT SHOULD WE CALL YOU?</MLabel>
+          <input
+            id="setup-name"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Alex"
+            maxLength={40}
+            className={`${INPUT} text-base`}
+          />
+        </div>
 
         <div className="mb-5">
           <p className="font-sans text-[11px] tracking-wider text-zinc-500 mb-2.5 font-bold text-left">
@@ -372,10 +415,10 @@ export function FirstTimeSetup({ onComplete }) {
         </div>
 
         <button
-          onClick={() => goalDate && onComplete(goalDate)}
-          disabled={!goalDate}
+          onClick={() => goalDate && name.trim() && onComplete(goalDate, name)}
+          disabled={!goalDate || !name.trim()}
           className={`px-10 py-3 border-none rounded-lg font-sans text-[13px] tracking-wider font-black transition-colors duration-150 ${
-            goalDate ? 'bg-accent hover:bg-zinc-200 text-zinc-950 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+            goalDate && name.trim() ? 'bg-accent hover:bg-zinc-200 text-zinc-950 cursor-pointer' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
           }`}
         >
           GET STARTED

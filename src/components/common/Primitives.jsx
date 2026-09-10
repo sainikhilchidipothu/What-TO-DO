@@ -2,7 +2,7 @@
 // Primitives reused across modals and the rest of the app.
 
 const BTN_BASE =
-  'px-5 py-2.5 rounded-lg font-sans text-[11px] tracking-[0.2em] font-bold uppercase transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer'
+  'px-5 py-2.5 rounded-lg font-sans text-xs tracking-[0.16em] font-black uppercase transition-all duration-150 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer'
 
 const BTN_VARIANTS = {
   primary: 'bg-accent text-zinc-950 hover:bg-zinc-200',
@@ -26,7 +26,7 @@ export function Btn({ children, onClick, disabled, variant = 'primary', classNam
 
 export function MTitle({ children, className = '' }) {
   return (
-    <h2 className={`font-sans font-black text-[15px] tracking-[0.2em] text-zinc-50 mb-5 ${className}`}>
+    <h2 className={`font-sans font-black text-lg tracking-[0.16em] text-white mb-5 ${className}`}>
       {children}
     </h2>
   )
@@ -34,7 +34,7 @@ export function MTitle({ children, className = '' }) {
 
 export function MLabel({ children, className = '', htmlFor }) {
   return (
-    <label htmlFor={htmlFor} className={`block font-sans text-[10px] tracking-[0.3em] font-bold text-zinc-500 mb-2 uppercase ${className}`}>
+    <label htmlFor={htmlFor} className={`block font-sans text-xs tracking-[0.2em] font-black text-zinc-300 mb-2 uppercase ${className}`}>
       {children}
     </label>
   )

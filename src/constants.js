@@ -40,6 +40,7 @@ export const SPRING_2026_SEMESTER = {
 }
 
 export const DEFAULT_STATE = {
+  userName: '',
   habits: [],    // { id, name, category, specificDays, pinned, startDate? } — startDate gates tracking to that date onward
 
   tasks: [],      // { id, name, due, tier, done, classId?, subtasks:[], recurring:null, dependsOn:[] }

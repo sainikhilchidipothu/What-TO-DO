@@ -37,6 +37,7 @@ import {
   ClassFormModal,
   InsightsModal,
   FirstTimeSetup,
+  NameModal,
 } from './components/modals/SmallModals.jsx'
 import { TaskModal } from './components/modals/TaskModal.jsx'
 import { SemesterModal } from './components/modals/SemesterModal.jsx'
@@ -368,6 +369,12 @@ export default function App() {
     showToast('Welcome to What-TO-DO! 🎉')
   }
 
+  const saveUserName = (name) => {
+    setState({ userName: name.trim() })
+    close()
+    showToast(name.trim() ? 'Name updated ✓' : 'Name cleared')
+  }
+
   // ── RENDER ───────────────────────────────────────────────────────────────
   // Close mobile drawer whenever a sidebar action runs — cleanest UX.
   const withDrawerClose = (fn) => (...args) => { setMobileMenuOpen(false); return fn(...args) }
@@ -399,7 +406,11 @@ export default function App() {
 
   return (
     <div className="app-container flex flex-row h-screen bg-zinc-950 text-white font-sans overflow-hidden">
-      {firstTimeSetupOpen && <FirstTimeSetup onComplete={completeFirstTimeSetup} />}
+      {firstTimeSetupOpen && <FirstTimeSetup initialName={state.userName} onComplete={(date, name) => {
+        setState((prev) => ({ ...prev, targetDate: date, userName: name.trim() }))
+        setFirstTimeSetupOpen(false)
+        showToast('Welcome to What-TO-DO! 🎉')
+      }} />}
       {intro && !firstTimeSetupOpen && (
         <IntroScreen targetDate={state.targetDate} remaining={remaining} onContinue={() => setIntro(false)} />
       )}
@@ -463,6 +474,15 @@ export default function App() {
               ▶
             </button>
           </div>
+
+          <button
+            onClick={() => setModal('name')}
+            aria-label="Edit your name"
+            className="greeting-button hidden sm:flex flex-col items-start justify-center mr-4 px-4 py-2 rounded-xl border border-zinc-700 bg-zinc-950/70 hover:bg-zinc-800 hover:border-accent cursor-pointer text-left transition-all duration-150"
+          >
+            <span className="font-sans text-[10px] uppercase tracking-[0.22em] text-accent font-black">HELLO</span>
+            <span className="font-sans text-lg font-black text-white leading-tight">{state.userName || 'there'} <span aria-hidden="true">👋</span></span>
+          </button>
 
           <div className="flex gap-3 items-center">
             {view === 'micro' && (
@@ -587,6 +607,9 @@ export default function App() {
       )}
       {(modal === 'insights' || modal === 'noinsights') && (
         <InsightsModal state={state} onClose={close} />
+      )}
+      {modal === 'name' && (
+        <NameModal initial={state.userName} onClose={close} onSave={saveUserName} />
       )}
     </div>
   )
