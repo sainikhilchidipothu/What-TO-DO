@@ -78,7 +78,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                       onMouseEnter={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
                       onMouseLeave={() => onHoverEnd?.()}
                       onMouseMove={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
-                      className="w-full aspect-square min-w-0 rounded flex items-center justify-center bg-zinc-950 border border-zinc-600 opacity-50 relative cursor-pointer"
+                      className="calendar-day-cell w-full rounded flex items-center justify-center bg-zinc-950 border border-zinc-600 opacity-50 relative cursor-pointer"
                     >
                       <span className="font-sans text-[13px] text-zinc-400 font-bold">{d}</span>
                     </div>
@@ -99,7 +99,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                     onMouseLeave={() => onHoverEnd?.()}
                     onMouseMove={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
                     style={{ borderColor, borderWidth, background: isTar ? '#2a2410' : bg }}
-                    className="w-full aspect-square min-w-0 rounded border-solid flex items-center justify-center relative cursor-pointer"
+                    className="calendar-day-cell w-full rounded border-solid flex items-center justify-center relative cursor-pointer"
                   >
                     {isTar && <div className="absolute -top-0.5 -right-0.5 text-sm" aria-hidden="true">🎯</div>}
                     <span

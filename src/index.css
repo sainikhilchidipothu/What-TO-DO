@@ -70,6 +70,15 @@
   white-space: nowrap;
 }
 
+/* Calendar days must stay true squares at every grid width. */
+.calendar-day-cell {
+  width: 100%;
+  height: auto !important;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  align-self: start;
+}
+
 /* Reduced motion respect */
 @media (prefers-reduced-motion: reduce) {
   .urgent-blink { animation: none; }
