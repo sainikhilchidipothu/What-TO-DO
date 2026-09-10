@@ -5,7 +5,7 @@ export function UrgentTasksAlert({ urgentTasks, onDismiss }) {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed bottom-20 right-6 bg-zinc-900 border-2 border-red-500 rounded-xl px-5 py-4 z-[90] w-[340px] max-w-[calc(100vw-48px)] shadow-floating"
+      className="urgent-alert fixed top-[92px] right-6 bg-zinc-900 border-2 border-red-500 rounded-xl px-5 py-4 z-[90] w-[340px] max-w-[calc(100vw-48px)] shadow-floating"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

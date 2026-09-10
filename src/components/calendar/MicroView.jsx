@@ -83,12 +83,12 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                 aria-label={`${k}${done > 0 ? `, ${done} of ${ag.length} goals done` : ''}`}
                 aria-pressed={isSel}
                 style={{ background: bg, borderColor: border }}
-                className="calendar-day-cell w-full rounded-xl cursor-pointer px-2 py-3 flex flex-col items-center border-4 relative transition-all duration-150"
+                className="calendar-day-cell w-full rounded-xl cursor-pointer px-2 py-2 flex flex-col items-center border-4 relative transition-all duration-150"
               >
                 {isTar && <div className="absolute top-0.5 left-0.5 text-base" aria-hidden="true">🎯</div>}
                 <span
                   style={{ color: isTar ? '#eab308' : done > 0 ? compColor(pct) : undefined }}
-                  className={`font-sans font-bold text-2xl ${!isTar && !(done > 0) ? (isSel ? 'text-white' : isTod ? 'text-white' : 'text-zinc-400') : ''}`}
+                  className={`font-sans font-bold text-2xl leading-none ${!isTar && !(done > 0) ? (isSel ? 'text-white' : isTod ? 'text-white' : 'text-zinc-400') : ''}`}
                 >
                   {d}
                 </span>
@@ -97,7 +97,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                     {done}/{ag.length}
                   </span>
                 )}
-                <div className="absolute inset-x-1 bottom-1 flex justify-center items-center gap-1">
+                <div className="calendar-day-footer absolute inset-x-1 bottom-1 flex justify-center items-center gap-1">
                   {hasClass && <div className="text-[10px]" aria-hidden="true">📚</div>}
                   {taskCount > 0 && (
                     <div

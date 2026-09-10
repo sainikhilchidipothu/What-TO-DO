@@ -83,7 +83,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
+  min-width: 30px;
   max-width: 90%;
   padding: 1px 3px;
   border: 1px solid;
@@ -97,6 +97,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.calendar-day-footer {
+  pointer-events: none;
+}
+
+.urgent-alert {
+  max-height: min(420px, calc(100vh - 120px));
+  overflow-y: auto;
 }
 
 /* Reduced motion respect */
@@ -171,7 +180,7 @@
 
   .macro-grid {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    gap: 16px !important;
   }
 
   .micro-layout {
@@ -192,6 +201,6 @@
 
   .macro-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 20px !important;
+    gap: 12px !important;
   }
 }
