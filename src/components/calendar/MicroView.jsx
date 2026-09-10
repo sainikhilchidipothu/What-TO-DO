@@ -35,7 +35,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-[repeat(7,minmax(0,1fr))] gap-2">
           {Array.from({ length: off }, (_, i) => <div key={'e' + i} />)}
           {Array.from({ length: dim }, (_, i) => {
             const d = i + 1
@@ -65,7 +65,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                   aria-label={`${k}, vacation day`}
                   aria-pressed={isSel}
                   style={{ borderColor: isSel ? '#a1a1aa' : '#52525b' }}
-                  className={`aspect-square rounded-xl cursor-pointer px-2 py-3 flex flex-col items-center border-4 opacity-50 relative transition-all duration-150 ${isSel ? 'bg-zinc-800' : 'bg-zinc-900'}`}
+                  className={`w-full aspect-square min-w-0 rounded-xl cursor-pointer px-2 py-3 flex flex-col items-center border-4 opacity-50 relative transition-all duration-150 ${isSel ? 'bg-zinc-800' : 'bg-zinc-900'}`}
                 >
                   <span className="font-sans font-bold text-2xl text-zinc-400">{d}</span>
                   <span className="font-sans text-[13px] text-zinc-500 mt-0.5" aria-hidden="true">🏖</span>
@@ -82,7 +82,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                 aria-label={`${k}${done > 0 ? `, ${done} of ${ag.length} goals done` : ''}`}
                 aria-pressed={isSel}
                 style={{ background: bg, borderColor: border }}
-                className="aspect-square rounded-xl cursor-pointer px-2 py-3 flex flex-col items-center border-4 relative transition-all duration-150"
+                className="w-full aspect-square min-w-0 rounded-xl cursor-pointer px-2 py-3 flex flex-col items-center border-4 relative transition-all duration-150"
               >
                 {isTar && <div className="absolute top-0.5 left-0.5 text-base" aria-hidden="true">🎯</div>}
                 <span

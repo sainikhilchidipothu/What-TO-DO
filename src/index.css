@@ -64,6 +64,12 @@
   box-shadow: 0 8px 28px rgba(250, 204, 21, 0.12);
 }
 
+.greeting-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Reduced motion respect */
 @media (prefers-reduced-motion: reduce) {
   .urgent-blink { animation: none; }
@@ -121,6 +127,10 @@
     letter-spacing: 2px !important;
   }
 
+  .header-nav > .greeting-button {
+    display: none !important;
+  }
+
   .main-content {
     padding: 16px !important;
   }
@@ -132,6 +142,7 @@
 
   .macro-grid {
     grid-template-columns: 1fr !important;
+    gap: 20px !important;
   }
 
   .micro-layout {
@@ -152,5 +163,6 @@
 
   .macro-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
   }
 }

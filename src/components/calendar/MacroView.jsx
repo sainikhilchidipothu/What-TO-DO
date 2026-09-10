@@ -14,7 +14,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
   const vm = state.vacationMode
 
   return (
-    <div className="macro-grid grid grid-cols-3 gap-6 max-w-[1600px] mx-auto">
+    <div className="macro-grid grid grid-cols-[repeat(3,minmax(0,1fr))] gap-7 max-w-[1600px] mx-auto">
       {Array.from({ length: 12 }, (_, m) => {
         const dim = new Date(year, m + 1, 0).getDate()
         const off = new Date(year, m, 1).getDay()
@@ -36,13 +36,13 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
             key={m}
             onClick={() => onMonth(m)}
             aria-label={`View ${MONTHS[m]} ${year} in detail`}
-            className="bg-zinc-900/70 border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/70 rounded-2xl p-6 cursor-pointer transition-all duration-200 text-left shadow-panel font-sans"
+            className="bg-zinc-900/70 border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/70 rounded-2xl p-6 cursor-pointer transition-all duration-200 text-left shadow-panel font-sans min-w-0"
           >
             <p className="font-sans text-[15px] font-bold tracking-[0.3em] text-white mb-[18px] text-center">
               {MONTHS[m].toUpperCase()}
             </p>
 
-            <div className="grid grid-cols-7 gap-1 mb-4">
+            <div className="grid grid-cols-[repeat(7,minmax(0,1fr))] gap-1.5 mb-4">
               {DAYS_SHORT.map((d) => (
                 <div key={d} className="text-center text-xs text-zinc-500 font-sans font-bold py-0.5">
                   {d[0]}
@@ -78,7 +78,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                       onMouseEnter={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
                       onMouseLeave={() => onHoverEnd?.()}
                       onMouseMove={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
-                      className="rounded aspect-square flex items-center justify-center bg-zinc-950 border border-zinc-600 opacity-50 relative cursor-pointer"
+                      className="w-full aspect-square min-w-0 rounded flex items-center justify-center bg-zinc-950 border border-zinc-600 opacity-50 relative cursor-pointer"
                     >
                       <span className="font-sans text-[13px] text-zinc-400 font-bold">{d}</span>
                     </div>
@@ -99,7 +99,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                     onMouseLeave={() => onHoverEnd?.()}
                     onMouseMove={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
                     style={{ borderColor, borderWidth, background: isTar ? '#2a2410' : bg }}
-                    className="rounded aspect-square border-solid flex items-center justify-center relative cursor-pointer"
+                    className="w-full aspect-square min-w-0 rounded border-solid flex items-center justify-center relative cursor-pointer"
                   >
                     {isTar && <div className="absolute -top-0.5 -right-0.5 text-sm" aria-hidden="true">🎯</div>}
                     <span

@@ -445,7 +445,7 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden bg-zinc-950">
         {/* Header */}
         <div className="header-nav flex items-center justify-between px-9 h-[76px] border-b border-zinc-800 flex-shrink-0 bg-zinc-900">
-          <div className="flex items-center gap-[18px] flex-1 min-w-0">
+          <div className="flex items-center gap-[18px] flex-1 min-w-0 basis-0">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Open navigation menu"
@@ -462,7 +462,7 @@ export default function App() {
               ◀
             </button>
 
-            <h1 className="calendar-title font-sans font-black text-2xl tracking-[0.3em] text-white min-w-[340px] text-center">
+            <h1 className="calendar-title flex-1 min-w-0 font-sans font-black text-2xl tracking-[0.3em] text-white text-center truncate">
               {view === 'macro' ? `${calY} OVERVIEW` : `${MONTHS[calM].toUpperCase()} ${calY}`}
             </h1>
 
@@ -478,13 +478,13 @@ export default function App() {
           <button
             onClick={() => setModal('name')}
             aria-label="Edit your name"
-            className="greeting-button hidden sm:flex flex-col items-start justify-center mr-4 px-4 py-2 rounded-xl border border-zinc-700 bg-zinc-950/70 hover:bg-zinc-800 hover:border-accent cursor-pointer text-left transition-all duration-150"
+            className="greeting-button hidden lg:flex flex-col items-start justify-center shrink-0 w-[clamp(130px,16vw,230px)] min-w-0 mr-4 px-4 py-2 rounded-xl border border-zinc-700 bg-zinc-950/70 hover:bg-zinc-800 hover:border-accent cursor-pointer text-left transition-all duration-150"
           >
             <span className="font-sans text-[10px] uppercase tracking-[0.22em] text-accent font-black">HELLO</span>
-            <span className="font-sans text-lg font-black text-white leading-tight">{state.userName || 'there'} <span aria-hidden="true">👋</span></span>
+            <span className="greeting-name block w-full min-w-0 truncate font-sans text-lg font-black text-white leading-tight" title={state.userName || 'there'}>{state.userName || 'there'} <span aria-hidden="true">👋</span></span>
           </button>
 
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-3 items-center shrink-0">
             {view === 'micro' && (
               <button
                 onClick={() => setView('macro')}
