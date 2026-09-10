@@ -52,6 +52,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
             const preview = getDayPreview(k, state)
             const hasClass = hasClassOnDay(k, state.classes, state)
             const dayTasks = preview.tasks.filter((t) => !t.done)
+            const taskCount = dayTasks.length
             const highestPriorityTask = dayTasks.length > 0
               ? dayTasks.reduce((max, t) => (t.tier > max.tier ? t : max), dayTasks[0])
               : null
@@ -96,9 +97,17 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                     {done}/{ag.length}
                   </span>
                 )}
-                <div className="absolute top-1 right-1 flex flex-col gap-0.5 items-end">
+                <div className="absolute inset-x-1 bottom-1 flex justify-center items-center gap-1">
                   {hasClass && <div className="text-[10px]" aria-hidden="true">📚</div>}
-                  {highestPriorityTask && <div style={{ background: getTaskPriorityColor(highestPriorityTask.tier) }} className="w-2.5 h-2.5 rounded-full border-2 border-zinc-900" />}
+                  {taskCount > 0 && (
+                    <div
+                      title={`${taskCount} task${taskCount !== 1 ? 's' : ''} scheduled`}
+                      className="task-day-badge"
+                      style={{ borderColor: getTaskPriorityColor(highestPriorityTask.tier) }}
+                    >
+                      TASK{taskCount > 1 ? ` ${taskCount}` : ''}
+                    </div>
+                  )}
                   {hasJournal && <div className="w-2.5 h-2.5 rounded-full bg-white border-2 border-zinc-900" />}
                 </div>
               </button>

@@ -44,6 +44,21 @@ export const fmtShortDate = (d) =>
     day: 'numeric',
   })
 
+/** Human-readable overdue duration; switches to days after the first 24 hours. */
+export const overdueDuration = (due, now = new Date()) => {
+  const elapsedDays = Math.floor((now - new Date(due)) / 864e5)
+  if (elapsedDays < 1) {
+    const hours = Math.max(1, Math.floor((now - new Date(due)) / 36e5))
+    return `${hours}h overdue`
+  }
+  const weeks = Math.floor(elapsedDays / 7)
+  if (weeks >= 1) {
+    const days = elapsedDays % 7
+    return `${weeks} week${weeks !== 1 ? 's' : ''}${days ? ` ${days} day${days !== 1 ? 's' : ''}` : ''} overdue`
+  }
+  return `${elapsedDays} day${elapsedDays !== 1 ? 's' : ''} overdue`
+}
+
 // ─── VACATION HELPERS ─────────────────────────────────────────────────────────
 
 export const isVacDay = (k, vm) => {

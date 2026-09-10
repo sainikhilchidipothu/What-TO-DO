@@ -14,7 +14,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
   const vm = state.vacationMode
 
   return (
-    <div className="macro-grid grid grid-cols-[repeat(3,minmax(0,1fr))] gap-7 max-w-[1600px] mx-auto">
+    <div className="macro-grid grid grid-cols-[repeat(3,minmax(0,1fr))] gap-4 max-w-[1600px] mx-auto">
       {Array.from({ length: 12 }, (_, m) => {
         const dim = new Date(year, m + 1, 0).getDate()
         const off = new Date(year, m, 1).getDay()
@@ -63,6 +63,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                 const preview = getDayPreview(k, state)
                 const hasClass = hasClassOnDay(k, state.classes, state)
                 const dayTasks = preview.tasks.filter((t) => !t.done)
+                const taskCount = dayTasks.length
                 const highestPriorityTask = dayTasks.length > 0
                   ? dayTasks.reduce((max, t) => (t.tier > max.tier ? t : max), dayTasks[0])
                   : null
@@ -108,9 +109,17 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                     >
                       {d}
                     </span>
-                    <div className="absolute top-0.5 right-0.5 flex flex-col gap-0.5 items-end">
+                    <div className="absolute inset-x-1 bottom-1 flex justify-center items-center gap-0.5">
                       {hasClass && <div className="text-[8px]" aria-hidden="true">📚</div>}
-                      {highestPriorityTask && <div style={{ background: getTaskPriorityColor(highestPriorityTask.tier) }} className="w-2 h-2 rounded-full border-2 border-zinc-900" />}
+                      {taskCount > 0 && (
+                        <div
+                          title={`${taskCount} task${taskCount !== 1 ? 's' : ''} scheduled`}
+                          className="task-day-badge"
+                          style={{ borderColor: getTaskPriorityColor(highestPriorityTask.tier) }}
+                        >
+                          TASK{taskCount > 1 ? ` ${taskCount}` : ''}
+                        </div>
+                      )}
                       {hasJournal && <div className="w-2 h-2 rounded-full bg-white border-2 border-zinc-900" />}
                     </div>
                   </div>

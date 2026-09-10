@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { EmptyState } from '../common/EmptyState.jsx'
+import { overdueDuration } from '../../utils/date.js'
 
 export function TasksList({
   tasks,
@@ -93,8 +94,8 @@ export function TasksList({
             const subtasksDone = (t.subtasks || []).filter((s) => s.done).length
             const subtasksTotal = (t.subtasks || []).length
             const isUrgent = urgentTasks.some((ut) => ut.id === t.id)
-            const hoursDiff = Math.abs(Math.floor((due - now) / (1000 * 60 * 60)))
-            const hoursText = ov ? `${hoursDiff}h overdue` : hoursDiff < 24 ? `${hoursDiff}h left` : ''
+            const hoursDiff = Math.max(0, Math.floor((due - now) / (1000 * 60 * 60)))
+            const hoursText = ov ? overdueDuration(t.due, now) : hoursDiff < 24 ? `${hoursDiff}h left` : ''
             const linkedClass = t.classId ? classes.find((c) => c.id === t.classId) : null
 
             return (
