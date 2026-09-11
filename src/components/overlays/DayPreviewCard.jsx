@@ -30,7 +30,7 @@ export function DayPreviewCard({ dateKey, state, position }) {
       {isTargetDay && (
         <div className="flex items-center gap-2.5 mb-2.5 px-3 py-2.5 bg-zinc-800 rounded-lg border-2 border-zinc-500">
           <span className="text-lg" aria-hidden="true">🎯</span>
-          <span className="font-sans text-[13px] text-amber-500 font-bold tracking-wide">THE DAY!</span>
+          <span className="font-sans text-[13px] text-zinc-300 font-bold tracking-wide">THE DAY!</span>
         </div>
       )}
 

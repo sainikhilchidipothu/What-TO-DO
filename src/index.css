@@ -12,9 +12,9 @@
   body {
     background: #09090b;
     color: #fff;
-    font-family: 'Epilogue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
     overflow: hidden;
     height: 100vh;
   }
@@ -40,6 +40,10 @@
 
 /* Keep secondary copy readable against the dark surfaces. */
 @layer utilities {
+  .bg-accent { background-color: #f4f4f5 !important; }
+  .hover\:bg-zinc-200:hover { background-color: #d4d4d8 !important; }
+  .text-accent { color: #f4f4f5 !important; }
+  .border-accent { border-color: #f4f4f5 !important; }
   .text-zinc-500 { color: #a1a1aa !important; }
   .text-zinc-400 { color: #c4c4cc !important; }
   .text-zinc-300 { color: #e4e4e7 !important; }
@@ -75,7 +79,7 @@
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   z-index: 5;
-  gap: 20px;
+  gap: 16px;
 }
 
 .header-nav button,
@@ -101,6 +105,8 @@
 
 .sidebar {
   scrollbar-gutter: stable;
+  background: #18181b !important;
+  border-color: #2c2c2e !important;
 }
 
 .sidebar > button:first-child {
@@ -116,7 +122,7 @@
 }
 
 .main-content > * {
-  max-width: 1500px;
+  max-width: 1440px;
   margin-inline: auto;
 }
 
@@ -125,7 +131,8 @@
 }
 
 .calendar-title {
-  letter-spacing: 0.22em !important;
+  letter-spacing: 0.16em !important;
+  font-size: 21px !important;
 }
 
 .greeting-button {
@@ -140,12 +147,35 @@
 }
 
 .macro-grid {
-  gap: 16px !important;
+  gap: 12px !important;
 }
 
 .macro-grid > button {
-  padding: 20px !important;
-  border-radius: 14px !important;
+  padding: 18px !important;
+  border-radius: 12px !important;
+  background: #1c1c1e !important;
+  border-color: #38383a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28) !important;
+}
+
+.macro-grid > button:hover {
+  background: #232326 !important;
+  border-color: #545458 !important;
+  transform: none;
+}
+
+.macro-grid .task-day-badge {
+  background: #2c2c2e;
+  border-color: #8e8e93 !important;
+  color: #f2f2f7;
+}
+
+.hint-bar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  background: #1c1c1e !important;
+  border-color: #2c2c2e !important;
 }
 
 /* Calendar days must stay true squares at every grid width. */

@@ -32,7 +32,7 @@ export function ClassToday({ classes, state, onManage, onManageSemester }) {
       {/* Semester inactive but classes exist */}
       {!state.semesterActive && (classes || []).length > 0 && (
         <div className="px-3 py-2.5 bg-zinc-950/60 border border-zinc-800 rounded-md mb-2.5">
-          <p className="font-sans text-[11px] text-amber-500 font-bold mb-1">
+          <p className="font-sans text-[11px] text-zinc-400 font-bold mb-1">
             No semester set
           </p>
           <p className="font-sans text-[11px] text-zinc-300 leading-relaxed mb-2">
@@ -40,7 +40,7 @@ export function ClassToday({ classes, state, onManage, onManageSemester }) {
           </p>
           <button
             onClick={onManageSemester}
-            className="font-sans text-[10px] text-amber-500 bg-transparent border border-amber-500 cursor-pointer px-2 py-1 rounded font-bold"
+            className="font-sans text-[10px] text-zinc-300 bg-transparent border border-zinc-600 cursor-pointer px-2 py-1 rounded font-bold"
           >
             SET SEMESTER →
           </button>

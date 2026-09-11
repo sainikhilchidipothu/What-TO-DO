@@ -590,7 +590,7 @@ export default function App() {
         </div>
 
         {/* Hint bar */}
-        <div className="px-9 py-2 bg-zinc-900 border-b border-zinc-800 flex-shrink-0">
+        <div className="hint-bar px-9 py-2 bg-zinc-900 border-b border-zinc-800 flex-shrink-0">
           <span className="font-sans text-[11px] text-zinc-500 tracking-wide font-bold">
             {view === 'micro'
               ? '◀ ▶ navigate months · Esc back to year · click day for details & journal'

@@ -120,8 +120,8 @@ export function SemesterModal({ state, onClose, onSave, onClear }) {
 
       {/* Existing classes notice */}
       {classCount > 0 && state.semesterActive && (
-        <div className="bg-amber-950/20 border border-zinc-800 rounded-lg p-3 mb-4">
-          <p className="font-sans text-[11px] text-amber-500 font-bold mb-1">
+        <div className="bg-zinc-800/60 border border-zinc-700 rounded-lg p-3 mb-4">
+          <p className="font-sans text-[11px] text-zinc-300 font-bold mb-1">
             ℹ Starting a new semester will separate {classCount} current class{classCount !== 1 ? 'es' : ''}
           </p>
           <p className="font-sans text-[10px] text-zinc-500 leading-relaxed">

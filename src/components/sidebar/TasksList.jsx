@@ -124,7 +124,7 @@ export function TasksList({
                     {t.name}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className={`font-sans text-xs font-medium ${ov ? 'text-red-500' : isUrgent ? 'text-amber-500' : 'text-zinc-500'}`}>
+                    <p className={`font-sans text-xs font-medium ${ov ? 'text-zinc-200' : isUrgent ? 'text-zinc-300' : 'text-zinc-500'}`}>
                       {done
                         ? 'DONE'
                         : ov

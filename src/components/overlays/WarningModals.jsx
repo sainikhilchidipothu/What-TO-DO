@@ -39,14 +39,14 @@ export function TaskVacationWarning({ onClose, onConfirm, taskDate }) {
 
   return (
     <Backdrop onClose={onClose}>
-      <WarningCard borderColor="border-amber-500">
+      <WarningCard borderColor="border-zinc-500">
         <div className="text-center mb-6">
           <div className="text-[56px] mb-4" aria-hidden="true">🏖</div>
-          <h2 id="modal-title" className="font-sans text-2xl text-amber-500 mb-3 font-bold tracking-wide">
+          <h2 id="modal-title" className="font-sans text-2xl text-zinc-200 mb-3 font-bold tracking-wide">
             VACATION PERIOD
           </h2>
           <p className="font-sans text-[15px] text-white leading-relaxed mb-2">
-            This task is scheduled for <strong className="text-amber-500">{taskDate}</strong>
+            This task is scheduled for <strong className="text-zinc-200">{taskDate}</strong>
           </p>
           <p className="font-sans text-[13px] text-zinc-400 leading-relaxed">
             You're on vacation during this time. Are you sure you want to add work?
@@ -54,7 +54,7 @@ export function TaskVacationWarning({ onClose, onConfirm, taskDate }) {
         </div>
         <ActionRow>
           <LightBtn onClick={onClose}>CANCEL</LightBtn>
-          <DangerBtn onClick={onConfirm} color="text-amber-500 border-amber-500">ADD ANYWAY</DangerBtn>
+          <DangerBtn onClick={onConfirm} color="text-zinc-200 border-zinc-500">ADD ANYWAY</DangerBtn>
         </ActionRow>
       </WarningCard>
     </Backdrop>
