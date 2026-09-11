@@ -5,6 +5,6 @@
 // or a category id at runtime).
 
 // ─── COMPLETION COLORS ────────────────────────────────────────────────────────
-export const compColor = (pct) => (pct >= 1 ? '#6fa47d' : pct >= 0.5 ? '#b39a58' : '#b56a6a')
-export const compBg = (pct) => (pct >= 1 ? '#17251c' : pct >= 0.5 ? '#282316' : '#28191b')
-export const getTaskPriorityColor = (tier) => (tier === 3 ? '#b56a6a' : tier === 2 ? '#b39a58' : '#6f9278')
+export const compColor = (pct) => (pct >= 1 ? '#79a887' : pct >= 0.5 ? '#c0a35e' : '#c27676')
+export const compBg = (pct) => (pct >= 1 ? '#1a2c20' : pct >= 0.5 ? '#302817' : '#301d1f')
+export const getTaskPriorityColor = (tier) => (tier === 3 ? '#c27676' : tier === 2 ? '#c0a35e' : '#79a887')

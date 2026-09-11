@@ -61,11 +61,11 @@
 }
 
 .greeting-button {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  box-shadow: none;
 }
 
 .greeting-button:hover {
-  box-shadow: 0 8px 28px rgba(250, 204, 21, 0.12);
+  box-shadow: none;
 }
 
 .greeting-name {

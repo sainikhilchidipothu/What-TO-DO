@@ -95,7 +95,7 @@ export function TasksList({
             const due = new Date(t.due)
             const done = isDone(t)
             const ov = due < now && !done
-            const tierCol = [null, '#6f9278', '#b39a58', '#b56a6a'][t.tier]
+            const tierCol = [null, '#79a887', '#c0a35e', '#c27676'][t.tier]
             const subtasksDone = (t.subtasks || []).filter((s) => s.done).length
             const subtasksTotal = (t.subtasks || []).length
             const isUrgent = urgentTasks.some((ut) => ut.id === t.id)
