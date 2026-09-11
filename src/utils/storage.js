@@ -9,7 +9,7 @@ export const loadState = () => {
     if (!raw) return DEFAULT_STATE
 
     const parsed = JSON.parse(raw)
-    const next = { ...DEFAULT_STATE, ...parsed }
+    const next = { ...DEFAULT_STATE, ...parsed, pomodoroSessions: parsed.pomodoroSessions || [], grades: parsed.grades || [], weeklyReviews: parsed.weeklyReviews || {} }
     const currentSemesterId = next.currentSemesterId || 'legacy-semester'
     const configuredSemester = {
       id: currentSemesterId,
@@ -107,6 +107,9 @@ export const importFromFile = (file) =>
         }
         resolve({
           ...next,
+          pomodoroSessions: next.pomodoroSessions || [],
+          grades: next.grades || [],
+          weeklyReviews: next.weeklyReviews || {},
           currentSemesterId,
           semesters,
           classes: (next.classes || []).map((c) => ({

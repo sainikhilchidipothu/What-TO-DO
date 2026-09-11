@@ -44,6 +44,9 @@ export const DEFAULT_STATE = {
   habits: [],    // { id, name, category, specificDays, pinned, startDate? } — startDate gates tracking to that date onward
 
   tasks: [],      // { id, name, due, tier, done, classId?, subtasks:[], recurring:null, dependsOn:[] }
+  pomodoroSessions: [], // { id, classId?, startedAt, minutes, type }
+  grades: [], // { id, classId, assessment, score, maxScore, weight }
+  weeklyReviews: {}, // { [weekStart]: { wins: [], nextWeek: '' } }
   history: {},
   journal: {},
   targetDate: '2026-08-31',

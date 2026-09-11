@@ -11,6 +11,7 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
+import { weekStart } from './utils/roadmap.js'
 
 // Components
 import { Sidebar } from './components/sidebar/Sidebar.jsx'
@@ -41,6 +42,8 @@ import {
 } from './components/modals/SmallModals.jsx'
 import { TaskModal } from './components/modals/TaskModal.jsx'
 import { SemesterModal } from './components/modals/SemesterModal.jsx'
+import { RoadmapModal } from './components/modals/RoadmapModal.jsx'
+import { CommandPalette } from './components/overlays/CommandPalette.jsx'
 
 export default function App() {
   const [state, setState] = useAppState()
@@ -79,6 +82,7 @@ export default function App() {
 
   // Urgent alert dismiss
   const [urgentDismissed, setUrgentDismissed] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   // Filter for goals
   const [catFilter, setCatFilter] = useState('all')
@@ -91,6 +95,28 @@ export default function App() {
   const activeClasses = state.classes.filter((c) => c.semesterId === state.currentSemesterId)
   const viewState = { ...state, classes: activeClasses }
   const semesters = state.semesters || []
+
+  useEffect(() => {
+    const notify = (title, body) => {
+      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body })
+    }
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(() => {})
+    const tick = () => {
+      const now = Date.now()
+      state.tasks.filter((t) => !t.done && t.due).forEach((t) => {
+        const due = new Date(t.due).getTime()
+        if (Math.abs(due - now) < 30000 && !sessionStorage.getItem(`due:${t.id}:${t.due}`)) { notify('Task due now', t.name); sessionStorage.setItem(`due:${t.id}:${t.due}`, '1') }
+      })
+      state.classes.forEach((c) => {
+        if (!c.time || !c.days?.includes(new Date().getDay())) return
+        const [hour, minute] = c.time.split(':').map(Number)
+        const start = new Date(); start.setHours(hour, minute, 0, 0)
+        if (start.getTime() - now > 9.5 * 60000 && start.getTime() - now < 10.5 * 60000 && !sessionStorage.getItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`)) { notify('Class starting in 10 minutes', c.name); sessionStorage.setItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`, '1') }
+      })
+    }
+    const id = setInterval(tick, 30000); tick()
+    return () => clearInterval(id)
+  }, [state.tasks, state.classes])
 
   // ── Modal helpers ────────────────────────────────────────────────────────
   const close = useCallback(() => { setModal(null); setEditId(null); setEditCId(null) }, [])
@@ -117,6 +143,7 @@ export default function App() {
     onNewTask: () => openTask(),
     onNewJournal: () => openJournal(todayKey()),
     onNavMonth: navM,
+    onPalette: () => setPaletteOpen(true),
   })
 
   // ── Auto-archive past vacations ──────────────────────────────────────────
@@ -193,8 +220,8 @@ export default function App() {
   const confirmSaveTask = (data) => {
     setState((prev) =>
       data.editId
-        ? { ...prev, tasks: prev.tasks.map((t) => (t.id === data.editId ? { ...t, name: data.name, due: data.due, tier: data.tier, subtasks: data.subtasks, classId: data.classId } : t)) }
-        : { ...prev, tasks: [...prev.tasks, { id: uid(), name: data.name, due: data.due, tier: data.tier, done: false, subtasks: data.subtasks, classId: data.classId }] }
+        ? { ...prev, tasks: prev.tasks.map((t) => (t.id === data.editId ? { ...t, name: data.name, due: data.due, tier: data.tier, subtasks: data.subtasks, classId: data.classId, recurring: data.recurring || null } : t)) }
+        : { ...prev, tasks: [...prev.tasks, { id: uid(), name: data.name, due: data.due, tier: data.tier, done: false, subtasks: data.subtasks, classId: data.classId, recurring: data.recurring || null }] }
     )
     setTaskVacationWarning(null)
     setPendingTaskData(null)
@@ -362,6 +389,9 @@ export default function App() {
     showToast('All data deleted')
   }
 
+  const saveGrade = (grade) => setState((prev) => ({ ...prev, grades: [...(prev.grades || []), grade] }))
+  const saveReview = (review) => setState((prev) => ({ ...prev, weeklyReviews: { ...(prev.weeklyReviews || {}), [weekStart()]: review } }))
+
   // ── FIRST-TIME SETUP ─────────────────────────────────────────────────────
   const completeFirstTimeSetup = (date) => {
     setState((prev) => ({ ...prev, targetDate: date }))
@@ -399,6 +429,7 @@ export default function App() {
       tier: editingTask.tier,
       subtasks: editingTask.subtasks || [],
       classId: editingTask.classId || '',
+      recurring: editingTask.recurring || null,
     }
   }
 
@@ -439,7 +470,11 @@ export default function App() {
         onEditTask={openTask}
         onDeleteTask={delTask}
         onToggleTask={togTask}
-        onPomodoroComplete={() => showToast('⏱ Session complete!')}
+        onPomodoroComplete={() => {
+          setState((prev) => ({ ...prev, pomodoroSessions: [...(prev.pomodoroSessions || []), { id: uid(), startedAt: new Date().toISOString(), minutes: prev.timerPresets.focus, type: 'focus' }] }))
+          if ('Notification' in window && Notification.permission === 'granted') new Notification('Pomodoro complete', { body: 'Great work. Time for a break.' })
+          showToast('⏱ Session complete!')
+        }}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden bg-zinc-950">
@@ -498,7 +533,8 @@ export default function App() {
             <label title="Import" aria-label="Import data" className={`${ICON_BTN} inline-block`}>
               📂<input type="file" accept=".json" onChange={handleImport} className="hidden" />
             </label>
-            <button onClick={() => setModal('insights')} aria-label="View insights" className={ICON_BTN}>📊</button>
+            <button onClick={() => setModal('roadmap')} aria-label="Weekly review and analytics" className={ICON_BTN}>📊</button>
+            <button onClick={() => setPaletteOpen(true)} aria-label="Open command palette" className={ICON_BTN}>⌘K</button>
             <button
               onClick={() => setDeleteAllWarning(true)}
               aria-label="Delete all data"
@@ -611,6 +647,14 @@ export default function App() {
       {modal === 'name' && (
         <NameModal initial={state.userName} onClose={close} onSave={saveUserName} />
       )}
+      {modal === 'roadmap' && <RoadmapModal state={state} onClose={close} onSaveGrade={saveGrade} onSaveReview={saveReview} />}
+      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} actions={[
+        { label: 'New task', shortcut: 'Ctrl+T', run: () => openTask() },
+        { label: 'New goal', shortcut: 'Ctrl+N', run: () => openHabit() },
+        { label: 'New journal entry', shortcut: 'Ctrl+J', run: () => openJournal(todayKey()) },
+        { label: 'Manage classes', run: () => setModal('classes') },
+        { label: 'Weekly review and analytics', run: () => setModal('roadmap') },
+      ]} />}
     </div>
   )
 }

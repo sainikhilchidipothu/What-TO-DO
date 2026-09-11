@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react'
 
-export function useKeyboardShortcuts({ modal, view, onClose, onMacro, onNewHabit, onNewTask, onNewJournal, onNavMonth }) {
+export function useKeyboardShortcuts({ modal, view, onClose, onMacro, onNewHabit, onNewTask, onNewJournal, onNavMonth, onPalette }) {
   useEffect(() => {
     const fn = (e) => {
       if (e.key === 'Escape') {
@@ -14,6 +14,7 @@ export function useKeyboardShortcuts({ modal, view, onClose, onMacro, onNewHabit
       if (modal) return
 
       const mod = e.ctrlKey || e.metaKey
+      if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); onPalette?.(); return }
       if (mod && e.key === 'n') { e.preventDefault(); onNewHabit() }
       if (mod && e.key === 't') { e.preventDefault(); onNewTask() }
       if (mod && e.key === 'j') { e.preventDefault(); onNewJournal() }
@@ -25,5 +26,5 @@ export function useKeyboardShortcuts({ modal, view, onClose, onMacro, onNewHabit
     }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  }, [modal, view, onClose, onMacro, onNewHabit, onNewTask, onNewJournal, onNavMonth])
+  }, [modal, view, onClose, onMacro, onNewHabit, onNewTask, onNewJournal, onNavMonth, onPalette])
 }

@@ -19,6 +19,8 @@ export function TaskModal({ editId, initial, classes, onClose, onSave }) {
   const [subtasks, setSubtasks] = useState(initial?.subtasks || [])
   const [subtaskInput, setSubtaskInput] = useState('')
   const [classId, setClassId] = useState(initial?.classId || '')
+  const [recurrence, setRecurrence] = useState(initial?.recurring?.frequency || '')
+  const [weekdays, setWeekdays] = useState(initial?.recurring?.weekdays || [1, 3, 5])
 
   const addSubtask = () => {
     if (!subtaskInput.trim()) return
@@ -34,7 +36,7 @@ export function TaskModal({ editId, initial, classes, onClose, onSave }) {
     if (ampm === 'PM' && h !== 12) h += 12
     if (ampm === 'AM' && h === 12) h = 0
     const due = `${date}T${String(h).padStart(2, '0')}:${min}:00`
-    onSave({ name: name.trim(), due, tier, subtasks, classId: classId || undefined, date })
+    onSave({ name: name.trim(), due, tier, subtasks, classId: classId || undefined, date, recurring: recurrence ? { frequency: recurrence, weekdays: recurrence === 'weekdays' ? weekdays : undefined } : null })
   }
 
   return (
@@ -148,6 +150,11 @@ export function TaskModal({ editId, initial, classes, onClose, onSave }) {
           </option>
         ))}
       </select>
+      <MLabel htmlFor="task-recurrence">REPEAT</MLabel>
+      <select id="task-recurrence" value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className={`${INPUT} mb-2`}>
+        <option value="">Does not repeat</option><option value="daily">Every day</option><option value="weekly">Every week</option><option value="weekdays">Selected weekdays</option>
+      </select>
+      {recurrence === 'weekdays' && <div className="flex flex-wrap gap-2 mb-4">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => <button type="button" key={day} onClick={() => setWeekdays((days) => days.includes(index) ? days.filter((x) => x !== index) : [...days, index])} className={`px-2 py-1 rounded text-[10px] ${weekdays.includes(index) ? 'bg-accent text-zinc-950' : 'bg-zinc-800 text-zinc-400'}`}>{day}</button>)}</div>}
 
       <MRow>
         <Btn onClick={onClose} variant="ghost">CANCEL</Btn>

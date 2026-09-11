@@ -1,5 +1,7 @@
 # What-TO-DO
 
+[![CI](https://github.com/sainikhilchidipothu/What-TO-DO/actions/workflows/ci.yml/badge.svg)](https://github.com/sainikhilchidipothu/What-TO-DO/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A personal productivity tracker to keep your daily routine in one place. Goals, tasks, classes, and journaling, all offline-first and free to use.
 
 🔗 **Live app:** [what-to-do-nu.vercel.app](https://what-to-do-nu.vercel.app/)
@@ -20,6 +22,10 @@ A personal productivity tracker to keep your daily routine in one place. Goals, 
 - **Responsive design** that works on desktop, tablet, and mobile
 - **Offline-first**, everything saves to your browser. No sign-up, no account, no tracking.
 - **Import / export** your data as a JSON backup at any time
+- **Recurring tasks** — daily, weekly, or selected weekdays (for example Mon/Wed/Fri)
+- **Browser reminders** for due tasks, Pomodoro completion, and classes starting in 10 minutes
+- **Weekly review** with completed work, top-three wins, next-week planning, streak context, GPA, and study hours by class
+- **Command palette** with `Cmd/Ctrl+K` and a five-second undo for deletes
 
 ## Tech Stack
 
@@ -57,6 +63,7 @@ npm test
 - `Ctrl+N` for a new goal
 - `Ctrl+T` for a new task
 - `Ctrl+J` for a new journal entry
+- `Cmd/Ctrl+K` to search task, goal, class, and journal actions
 - `← →` to navigate months
 - `Esc` to go back or close
 
@@ -77,6 +84,10 @@ src/
 
 Found a bug or have a suggestion? Open an issue or send a PR.
 
+## Screenshots and GIFs
+
+Visual assets are intentionally not committed as fabricated binaries. To add real screenshots or a GIF, capture the running app and place the files in `docs/`, then reference them here.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
