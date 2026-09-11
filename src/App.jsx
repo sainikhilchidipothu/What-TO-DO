@@ -11,7 +11,7 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
-import { weekStart } from './utils/roadmap.js'
+import { taskDoneOnDate, weekStart } from './utils/roadmap.js'
 
 // Components
 import { Sidebar } from './components/sidebar/Sidebar.jsx'
@@ -238,14 +238,21 @@ export default function App() {
     undoTimerRef.current = setTimeout(() => setUndoItem(null), 5000)
   }
 
-  const togTask = (id) => {
+  const togTask = (id, occurrenceDate = todayKey()) => {
     const task = state.tasks.find((t) => t.id === id)
-    const wasCompleted = task?.done
+    const wasCompleted = taskDoneOnDate(task, occurrenceDate)
     setState((prev) => {
       const newXP = !wasCompleted ? prev.xp + 10 : Math.max(0, prev.xp - 10)
       return {
         ...prev,
-        tasks: prev.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+        tasks: prev.tasks.map((t) => {
+          if (t.id !== id) return t
+          if (!t.recurring?.frequency) return { ...t, done: !t.done }
+          const recurringDone = { ...(t.recurringDone || {}) }
+          if (wasCompleted) delete recurringDone[occurrenceDate]
+          else recurringDone[occurrenceDate] = true
+          return { ...t, recurringDone }
+        }),
         xp: newXP,
         level: Math.floor(newXP / 100) + 1,
       }

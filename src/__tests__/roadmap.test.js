@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateGpa, recurringDates, tasksOnDate, reviewSummary, weeklyClassMinutes } from '../utils/roadmap.js'
+import { calculateGpa, recurringDates, taskDoneOnDate, tasksOnDate, reviewSummary, weeklyClassMinutes } from '../utils/roadmap.js'
 
 describe('roadmap helpers', () => {
   it('expands selected weekday recurrence', () => {
@@ -7,9 +7,21 @@ describe('roadmap helpers', () => {
   })
   it('returns recurring tasks on matching calendar dates', () => {
     const task = { id: 't1', name: 'Study', due: '2026-09-07T09:00:00', recurring: { frequency: 'weekdays', weekdays: [1, 3, 5] } }
-    expect(tasksOnDate([task], '2026-09-09')).toEqual([{ ...task, recurringInstance: true }])
+    expect(tasksOnDate([task], '2026-09-09')).toEqual([{ ...task, done: false, recurringInstance: true }])
     expect(tasksOnDate([task], '2026-09-08')).toEqual([])
     expect(tasksOnDate([task], '2026-09-06')).toEqual([])
+  })
+  it('tracks recurring completion independently for each date', () => {
+    const task = {
+      id: 't1',
+      name: 'Study',
+      due: '2026-09-07T09:00:00',
+      recurring: { frequency: 'daily' },
+      recurringDone: { '2026-09-11': true },
+    }
+    expect(taskDoneOnDate(task, '2026-09-11')).toBe(true)
+    expect(taskDoneOnDate(task, '2026-09-12')).toBe(false)
+    expect(tasksOnDate([task], '2026-09-12')[0].done).toBe(false)
   })
   it('calculates weighted GPA by class', () => {
     const result = calculateGpa([{ classId: 'a', score: 90, maxScore: 100, weight: 1 }], [{ id: 'a', name: 'Math' }])

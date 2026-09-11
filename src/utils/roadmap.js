@@ -28,8 +28,15 @@ export function tasksOnDate(tasks, dateKey) {
     return recurringDates(task, dateKey, dateKey).includes(dateKey)
   }).map((task) => ({
     ...task,
+    done: taskDoneOnDate(task, dateKey),
     recurringInstance: Boolean(task.recurring?.frequency && !task.due?.startsWith(dateKey)),
   }))
+}
+
+export function taskDoneOnDate(task, dateKey) {
+  if (!task?.recurring?.frequency) return Boolean(task?.done)
+  const originalDate = task.due?.slice(0, 10)
+  return Boolean(task.recurringDone?.[dateKey] || (task.done && dateKey === originalDate))
 }
 
 export function weekStart(date = new Date()) {

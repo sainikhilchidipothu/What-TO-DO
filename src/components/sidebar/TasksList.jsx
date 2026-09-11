@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { EmptyState } from '../common/EmptyState.jsx'
-import { overdueDuration } from '../../utils/date.js'
+import { overdueDuration, todayKey } from '../../utils/date.js'
+import { taskDoneOnDate } from '../../utils/roadmap.js'
 
 export function TasksList({
   tasks,
@@ -19,22 +20,25 @@ export function TasksList({
   const [showCompleted, setShowCompleted] = useState(false)
 
   const now = new Date()
+  const today = todayKey()
+  const isDone = (task) => taskDoneOnDate(task, today)
   const filtered = [...tasks]
-    .sort((a, b) => (a.done === b.done ? new Date(a.due) - new Date(b.due) : a.done ? 1 : -1))
+    .sort((a, b) => (isDone(a) === isDone(b) ? new Date(a.due) - new Date(b.due) : isDone(a) ? 1 : -1))
     .filter((t) => {
-      const ov = new Date(t.due) < now && !t.done
+      const done = isDone(t)
+      const ov = new Date(t.due) < now && !done
       return (
         t.name.toLowerCase().includes(search.toLowerCase()) &&
         (tierF === 'all' || String(t.tier) === tierF) &&
         (statF === 'all' ||
-          (statF === 'done' && t.done) ||
-          (statF === 'open' && !t.done && !ov) ||
+          (statF === 'done' && done) ||
+          (statF === 'open' && !done && !ov) ||
           (statF === 'overdue' && ov))
       )
     })
 
-  const pending = filtered.filter((t) => !t.done)
-  const completed = filtered.filter((t) => t.done)
+  const pending = filtered.filter((t) => !isDone(t))
+  const completed = filtered.filter((t) => isDone(t))
   const hiddenCompleted = Math.max(0, 5 - pending.length)
   const tasksToShow = showCompleted ? filtered : [...pending, ...completed.slice(0, hiddenCompleted)]
 
@@ -89,7 +93,8 @@ export function TasksList({
         ) : (
           tasksToShow.map((t) => {
             const due = new Date(t.due)
-            const ov = due < now && !t.done
+            const done = isDone(t)
+            const ov = due < now && !done
             const tierCol = [null, '#22c55e', '#eab308', '#ef4444'][t.tier]
             const subtasksDone = (t.subtasks || []).filter((s) => s.done).length
             const subtasksTotal = (t.subtasks || []).length
@@ -99,28 +104,28 @@ export function TasksList({
             const linkedClass = t.classId ? classes.find((c) => c.id === t.classId) : null
 
             return (
-              <div key={t.id} className={`flex items-center gap-2.5 px-4 py-2.5 border-b border-zinc-900 relative ${t.done ? 'opacity-45' : ''}`}>
-                {isUrgent && !t.done && (
+              <div key={t.id} className={`flex items-center gap-2.5 px-4 py-2.5 border-b border-zinc-900 relative ${done ? 'opacity-45' : ''}`}>
+                {isUrgent && !done && (
                   <div className="urgent-blink absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-red-500" aria-hidden="true" />
                 )}
                 <button
                   onClick={() => onToggle(t.id)}
-                  aria-label={t.done ? `Mark ${t.name} as not done` : `Mark ${t.name} as done`}
-                  aria-pressed={t.done}
-                  style={{ marginLeft: isUrgent && !t.done ? 12 : 0 }}
+                  aria-label={done ? `Mark ${t.name} as not done` : `Mark ${t.name} as done`}
+                  aria-pressed={done}
+                  style={{ marginLeft: isUrgent && !done ? 12 : 0 }}
                   className={`w-[18px] h-[18px] rounded flex-shrink-0 transition-all duration-150 border-2 cursor-pointer ${
-                    t.done ? 'border-zinc-400 bg-white' : 'border-zinc-600 bg-transparent'
+                    done ? 'border-zinc-400 bg-white' : 'border-zinc-600 bg-transparent'
                   }`}
                 >
-                  {t.done && <span className="text-[11px] text-zinc-950 block text-center leading-[18px] font-bold">✓</span>}
+                  {done && <span className="text-[11px] text-zinc-950 block text-center leading-[18px] font-bold">✓</span>}
                 </button>
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onEdit(t.id)}>
-                  <p className={`font-sans text-sm truncate font-semibold ${t.done ? 'text-zinc-500 line-through' : 'text-white'}`}>
+                  <p className={`font-sans text-sm truncate font-semibold ${done ? 'text-zinc-500 line-through' : 'text-white'}`}>
                     {t.name}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <p className={`font-sans text-xs font-medium ${ov ? 'text-red-500' : isUrgent ? 'text-amber-500' : 'text-zinc-500'}`}>
-                      {t.done
+                      {done
                         ? 'DONE'
                         : ov
                         ? `OVERDUE · ${hoursText}`
