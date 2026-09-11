@@ -39,7 +39,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
         }
 
         const mpct = mPoss > 0 ? Math.round((mDone / mPoss) * 100) : 0
-        const pColor = mpct >= 80 ? '#e4e4e7' : mpct >= 50 ? '#a1a1aa' : '#71717a'
+        const pColor = mpct >= 80 ? '#6fa47d' : mpct >= 50 ? '#b39a58' : '#b56a6a'
 
         return (
           <button

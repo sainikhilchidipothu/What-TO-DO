@@ -23,7 +23,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
   const selPct = selGoals.length > 0 ? Math.round((selDone / selGoals.length) * 100) : null
   const selTasks = tasksOnDate(state.tasks, sel)
   const selVac = isVacDay(sel, vm)
-  const pColor = selPct != null ? (selPct >= 100 ? '#e4e4e7' : selPct >= 50 ? '#a1a1aa' : '#71717a') : '#333'
+  const pColor = selPct != null ? (selPct >= 100 ? '#6fa47d' : selPct >= 50 ? '#b39a58' : '#b56a6a') : '#333'
 
   return (
     <div className="micro-layout flex gap-7 h-full">
@@ -119,14 +119,14 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
         {/* Legend */}
         <div className="flex gap-6 mt-6 flex-wrap">
           {[
-            ['#e4e4e7', 'All done'],
-            ['#a1a1aa', '50%+ done'],
-            ['#71717a', '<50%'],
+            ['#6fa47d', 'All done'],
+            ['#b39a58', '50%+ done'],
+            ['#b56a6a', '<50%'],
             ['#fff', 'Journal 📝'],
             ['📚', 'Class 📚'],
-            ['#e4e4e7', 'High priority'],
-            ['#a1a1aa', 'Medium priority'],
-            ['#71717a', 'Low priority'],
+            ['#b56a6a', 'High priority'],
+            ['#b39a58', 'Medium priority'],
+            ['#6f9278', 'Low priority'],
             ['border:#666', 'Vacation'],
           ].map(([c, l]) => {
             const isVacLegend = c.startsWith('border')
@@ -211,7 +211,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
             <div className="mb-4">
               <p className="font-sans text-[11px] text-zinc-500 tracking-wide mb-2.5 font-bold">TASKS DUE</p>
               {selTasks.map((t) => {
-                const tc = [null, '#71717a', '#a1a1aa', '#e4e4e7'][t.tier]
+                const tc = [null, '#6f9278', '#b39a58', '#b56a6a'][t.tier]
                 return (
                   <div key={t.id} className="bg-zinc-800/60 rounded-lg px-3 py-2.5 mb-1.5 flex items-center gap-2.5 border border-zinc-800">
                     <div aria-hidden="true" style={{ background: tc }} className="w-[7px] h-[7px] rounded-full flex-shrink-0" />
