@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { calculateGpa, recurringDates, reviewSummary, weeklyClassMinutes } from '../utils/roadmap.js'
+import { calculateGpa, recurringDates, tasksOnDate, reviewSummary, weeklyClassMinutes } from '../utils/roadmap.js'
 
 describe('roadmap helpers', () => {
   it('expands selected weekday recurrence', () => {
     expect(recurringDates({ due: '2026-09-07T09:00:00', recurring: { frequency: 'weekdays', weekdays: [1, 3, 5] } }, '2026-09-07', '2026-09-13')).toEqual(['2026-09-07', '2026-09-09', '2026-09-11'])
+  })
+  it('returns recurring tasks on matching calendar dates', () => {
+    const task = { id: 't1', name: 'Study', due: '2026-09-07T09:00:00', recurring: { frequency: 'weekdays', weekdays: [1, 3, 5] } }
+    expect(tasksOnDate([task], '2026-09-09')).toEqual([{ ...task, recurringInstance: true }])
+    expect(tasksOnDate([task], '2026-09-08')).toEqual([])
+    expect(tasksOnDate([task], '2026-09-06')).toEqual([])
   })
   it('calculates weighted GPA by class', () => {
     const result = calculateGpa([{ classId: 'a', score: 90, maxScore: 100, weight: 1 }], [{ id: 'a', name: 'Math' }])

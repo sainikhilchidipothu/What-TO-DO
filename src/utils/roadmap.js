@@ -17,7 +17,19 @@ export function recurringDates(task, from, through) {
       (r.frequency === 'weekdays' && (r.weekdays || []).includes(day))
     if (matches) dates.push(cursor.toISOString().slice(0, 10))
   }
+
   return dates
+}
+
+export function tasksOnDate(tasks, dateKey) {
+  return (tasks || []).filter((task) => {
+    if (task.due?.startsWith(dateKey)) return true
+    if (!task.recurring?.frequency || !task.due || dateKey < task.due.slice(0, 10)) return false
+    return recurringDates(task, dateKey, dateKey).includes(dateKey)
+  }).map((task) => ({
+    ...task,
+    recurringInstance: Boolean(task.recurring?.frequency && !task.due?.startsWith(dateKey)),
+  }))
 }
 
 export function weekStart(date = new Date()) {

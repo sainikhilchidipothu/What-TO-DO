@@ -8,6 +8,7 @@ import { CAT_COLORS, DAYS_SHORT } from '../../constants.js'
 import { isVacDay, todayKey } from '../../utils/date.js'
 import { getDayPreview, hasClassOnDay } from '../../utils/semester.js'
 import { habitAppliesOn } from '../../utils/helpers.js'
+import { tasksOnDate } from '../../utils/roadmap.js'
 
 export function MicroView({ year, month, state, onToggle, onJournal }) {
   const [sel, setSel] = useState(todayKey())
@@ -20,7 +21,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
   const selGoals = state.habits.filter((h) => habitAppliesOn(h, sel))
   const selDone = selGoals.filter((h) => selHist.includes(h.id)).length
   const selPct = selGoals.length > 0 ? Math.round((selDone / selGoals.length) * 100) : null
-  const selTasks = state.tasks.filter((t) => t.due?.startsWith(sel))
+  const selTasks = tasksOnDate(state.tasks, sel)
   const selVac = isVacDay(sel, vm)
   const pColor = selPct != null ? (selPct >= 100 ? '#22c55e' : selPct >= 50 ? '#eab308' : '#ef4444') : '#333'
 
@@ -217,6 +218,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
                     <p className={`font-sans text-[13px] flex-1 font-semibold ${t.done ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
                       {t.name}
                     </p>
+                    {t.recurringInstance && <span className="text-[10px] text-accent font-black">↻</span>}
                   </div>
                 )
               })}

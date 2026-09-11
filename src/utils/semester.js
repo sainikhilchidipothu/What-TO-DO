@@ -5,6 +5,7 @@
 
 import { todayKey } from './date.js'
 import { habitAppliesOn } from './helpers.js'
+import { tasksOnDate } from './roadmap.js'
 
 /**
  * Is the given ISO date key inside the active semester?
@@ -78,7 +79,7 @@ export const getSemesterStatus = (state) => {
 
 export const getDayPreview = (dateKey, state) => {
   const goals = state.habits.filter((h) => habitAppliesOn(h, dateKey))
-  const tasks = state.tasks.filter((t) => t.due?.startsWith(dateKey))
+  const tasks = tasksOnDate(state.tasks, dateKey)
   const hasJournal = !!state.journal[dateKey]
   const hasClass = hasClassOnDay(dateKey, state.classes, state)
   const isVacation = (() => {

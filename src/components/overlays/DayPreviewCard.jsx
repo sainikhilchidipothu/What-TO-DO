@@ -71,6 +71,7 @@ export function DayPreviewCard({ dateKey, state, position }) {
                 <div key={t.id} className="flex items-center gap-2 mb-1 px-1.5 py-1 bg-zinc-800/60 rounded-md">
                   <div style={{ background: getTaskPriorityColor(t.tier) }} className="w-2 h-2 rounded-full flex-shrink-0" />
                   <span className="font-sans text-[11px] text-zinc-200">{t.name}</span>
+                  {t.recurringInstance && <span className="ml-auto text-[10px] text-accent font-black" title="Recurring task">↻</span>}
                 </div>
               ))}
               {pendingTasks.length > 3 && (
