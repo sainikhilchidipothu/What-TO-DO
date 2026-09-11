@@ -22,13 +22,13 @@ export function DayPreviewCard({ dateKey, state, position }) {
 
   return (
     <div
-      style={{ left: x, top: y, maxWidth: MAX_W, borderColor: isTargetDay ? '#eab308' : '#71717a' }}
+      style={{ left: x, top: y, maxWidth: MAX_W, borderColor: isTargetDay ? '#a1a1aa' : '#71717a' }}
       className="absolute z-[1000] bg-zinc-900 border-2 rounded-xl p-4 min-w-[240px] shadow-floating pointer-events-none"
     >
       <p className="font-sans text-sm text-white mb-3 font-bold tracking-wide">{dateStr}</p>
 
       {isTargetDay && (
-        <div className="flex items-center gap-2.5 mb-2.5 px-3 py-2.5 bg-[#2a2410] rounded-lg border-2 border-amber-500">
+        <div className="flex items-center gap-2.5 mb-2.5 px-3 py-2.5 bg-zinc-800 rounded-lg border-2 border-zinc-500">
           <span className="text-lg" aria-hidden="true">🎯</span>
           <span className="font-sans text-[13px] text-amber-500 font-bold tracking-wide">THE DAY!</span>
         </div>

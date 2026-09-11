@@ -71,10 +71,11 @@
 }
 
 .header-nav {
-  background: linear-gradient(180deg, #18181b 0%, #141416 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  background: #18181b;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   z-index: 5;
+  gap: 20px;
 }
 
 .header-nav button,
@@ -83,13 +84,15 @@
 }
 
 .today-button {
-  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.15);
+  box-shadow: none;
+  background: #f4f4f5 !important;
+  border-color: #f4f4f5 !important;
 }
 
 .today-button:hover {
-  background: #fde047;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(250, 204, 21, 0.25);
+  background: #d4d4d8 !important;
+  transform: none;
+  box-shadow: none;
 }
 
 .calendar-subtitle {
@@ -115,6 +118,34 @@
 .main-content > * {
   max-width: 1500px;
   margin-inline: auto;
+}
+
+.header-nav > div:first-child {
+  max-width: 760px;
+}
+
+.calendar-title {
+  letter-spacing: 0.22em !important;
+}
+
+.greeting-button {
+  margin-right: 0;
+  border-color: #3f3f46;
+  background: #18181b;
+}
+
+.greeting-button:hover {
+  border-color: #71717a;
+  background: #27272a;
+}
+
+.macro-grid {
+  gap: 16px !important;
+}
+
+.macro-grid > button {
+  padding: 20px !important;
+  border-radius: 14px !important;
 }
 
 /* Calendar days must stay true squares at every grid width. */

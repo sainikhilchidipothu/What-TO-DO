@@ -23,7 +23,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
   const selPct = selGoals.length > 0 ? Math.round((selDone / selGoals.length) * 100) : null
   const selTasks = tasksOnDate(state.tasks, sel)
   const selVac = isVacDay(sel, vm)
-  const pColor = selPct != null ? (selPct >= 100 ? '#22c55e' : selPct >= 50 ? '#eab308' : '#ef4444') : '#333'
+  const pColor = selPct != null ? (selPct >= 100 ? '#e4e4e7' : selPct >= 50 ? '#a1a1aa' : '#71717a') : '#333'
 
   return (
     <div className="micro-layout flex gap-7 h-full">
@@ -75,8 +75,8 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
               )
             }
 
-            const bg = isSel ? '#2b2b2b' : isTar ? '#2a2410' : done > 0 ? compBg(pct) : '#252525'
-            const border = isSel ? '#ffffff' : isTar ? '#eab308' : isTod ? '#a1a1aa' : '#3f3f3f'
+            const bg = isSel ? '#2b2b2b' : isTar ? '#27272a' : done > 0 ? compBg(pct) : '#252525'
+            const border = isSel ? '#ffffff' : isTar ? '#a1a1aa' : isTod ? '#a1a1aa' : '#3f3f3f'
             return (
               <button
                 key={d}
@@ -88,7 +88,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
               >
                 {isTar && <div className="absolute top-0.5 left-0.5 text-base" aria-hidden="true">🎯</div>}
                 <span
-                  style={{ color: isTar ? '#eab308' : done > 0 ? compColor(pct) : undefined }}
+                  style={{ color: isTar ? '#f4f4f5' : done > 0 ? compColor(pct) : undefined }}
                   className={`font-sans font-bold text-2xl leading-none ${!isTar && !(done > 0) ? (isSel ? 'text-white' : isTod ? 'text-white' : 'text-zinc-400') : ''}`}
                 >
                   {d}
@@ -119,14 +119,14 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
         {/* Legend */}
         <div className="flex gap-6 mt-6 flex-wrap">
           {[
-            ['#22c55e', 'All done'],
-            ['#eab308', '50%+ done'],
-            ['#ef4444', '<50%'],
+            ['#e4e4e7', 'All done'],
+            ['#a1a1aa', '50%+ done'],
+            ['#71717a', '<50%'],
             ['#fff', 'Journal 📝'],
             ['📚', 'Class 📚'],
-            ['#ef4444', 'High priority'],
-            ['#eab308', 'Medium priority'],
-            ['#22c55e', 'Low priority'],
+            ['#e4e4e7', 'High priority'],
+            ['#a1a1aa', 'Medium priority'],
+            ['#71717a', 'Low priority'],
             ['border:#666', 'Vacation'],
           ].map(([c, l]) => {
             const isVacLegend = c.startsWith('border')
@@ -211,7 +211,7 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
             <div className="mb-4">
               <p className="font-sans text-[11px] text-zinc-500 tracking-wide mb-2.5 font-bold">TASKS DUE</p>
               {selTasks.map((t) => {
-                const tc = [null, '#22c55e', '#eab308', '#ef4444'][t.tier]
+                const tc = [null, '#71717a', '#a1a1aa', '#e4e4e7'][t.tier]
                 return (
                   <div key={t.id} className="bg-zinc-800/60 rounded-lg px-3 py-2.5 mb-1.5 flex items-center gap-2.5 border border-zinc-800">
                     <div aria-hidden="true" style={{ background: tc }} className="w-[7px] h-[7px] rounded-full flex-shrink-0" />

@@ -63,7 +63,7 @@ export function TaskModal({ editId, initial, classes, onClose, onSave }) {
 
       <MLabel>PRIORITY</MLabel>
       <div role="radiogroup" aria-label="Priority" className="flex gap-2 mb-5">
-        {[[1, 'LOW', '#22c55e'], [2, 'MEDIUM', '#eab308'], [3, 'HIGH', '#ef4444']].map(([v, l, c]) => (
+        {[[1, 'LOW', '#71717a'], [2, 'MEDIUM', '#a1a1aa'], [3, 'HIGH', '#e4e4e7']].map(([v, l, c]) => (
           <button
             key={v}
             type="button"

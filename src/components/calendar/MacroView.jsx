@@ -39,7 +39,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
         }
 
         const mpct = mPoss > 0 ? Math.round((mDone / mPoss) * 100) : 0
-        const pColor = mpct >= 80 ? '#22c55e' : mpct >= 50 ? '#eab308' : '#ef4444'
+        const pColor = mpct >= 80 ? '#e4e4e7' : mpct >= 50 ? '#a1a1aa' : '#71717a'
 
         return (
           <button
@@ -98,8 +98,8 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                 }
 
                 const bg = done > 0 ? compBg(pct) : isTod ? '#3f3f3f' : '#121212'
-                const borderColor = isTar ? '#eab308' : isTod ? '#71717a' : '#2b2b2b'
-                const borderWidth = isTar ? 3 : 2
+                const borderColor = isTar ? '#a1a1aa' : isTod ? '#71717a' : '#2b2b2b'
+                const borderWidth = isTar ? 2 : 1
 
                 return (
                   <div
@@ -110,12 +110,12 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                     onMouseEnter={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
                     onMouseLeave={() => onHoverEnd?.()}
                     onMouseMove={(e) => onHover?.(k, { x: e.clientX + 15, y: e.clientY + 15 })}
-                    style={{ borderColor, borderWidth, background: isTar ? '#2a2410' : bg }}
+                    style={{ borderColor, borderWidth, background: isTar ? '#27272a' : bg }}
                     className="calendar-day-cell w-full rounded border-solid flex flex-col items-center justify-between px-1 py-1 relative cursor-pointer"
                   >
                     {isTar && <div className="absolute -top-0.5 -right-0.5 text-sm" aria-hidden="true">🎯</div>}
                     <span
-                      style={{ color: isTar ? '#eab308' : done > 0 ? compColor(pct) : undefined }}
+                      style={{ color: isTar ? '#f4f4f5' : done > 0 ? compColor(pct) : undefined }}
                       className={`font-sans text-[13px] font-bold leading-none ${!isTar && done === 0 ? (isTod ? 'text-white' : 'text-zinc-500') : ''}`}
                     >
                       {d}
