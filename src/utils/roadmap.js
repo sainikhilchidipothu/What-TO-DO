@@ -29,8 +29,13 @@ export function tasksOnDate(tasks, dateKey) {
   }).map((task) => ({
     ...task,
     done: taskDoneOnDate(task, dateKey),
+    occurrenceDue: taskDueOnDate(task, dateKey),
     recurringInstance: Boolean(task.recurring?.frequency && !task.due?.startsWith(dateKey)),
   }))
+}
+
+export function taskDueOnDate(task, dateKey) {
+  return task?.recurring?.frequency && task.due ? `${dateKey}${task.due.slice(10)}` : task?.due
 }
 
 export function taskDoneOnDate(task, dateKey) {

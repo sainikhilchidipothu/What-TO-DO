@@ -13,6 +13,10 @@ export const dk = (d) => {
 /** Today's date as an ISO "YYYY-MM-DD" key, in local time. */
 export const todayKey = () => dk(new Date())
 
+/** Whether an unfinished item is past its effective due time. */
+export const isOverdue = (due, done = false, now = new Date()) =>
+  !done && Boolean(due) && new Date(due) < now
+
 /** Random-ish unique id. Fine for single-user localStorage; use UUIDs if syncing. */
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 

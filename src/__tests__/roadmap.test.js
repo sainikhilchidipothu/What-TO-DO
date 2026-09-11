@@ -7,7 +7,7 @@ describe('roadmap helpers', () => {
   })
   it('returns recurring tasks on matching calendar dates', () => {
     const task = { id: 't1', name: 'Study', due: '2026-09-07T09:00:00', recurring: { frequency: 'weekdays', weekdays: [1, 3, 5] } }
-    expect(tasksOnDate([task], '2026-09-09')).toEqual([{ ...task, done: false, recurringInstance: true }])
+    expect(tasksOnDate([task], '2026-09-09')).toEqual([{ ...task, done: false, occurrenceDue: '2026-09-09T09:00:00', recurringInstance: true }])
     expect(tasksOnDate([task], '2026-09-08')).toEqual([])
     expect(tasksOnDate([task], '2026-09-06')).toEqual([])
   })

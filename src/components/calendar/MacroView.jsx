@@ -6,7 +6,7 @@
 import { useEffect, useRef } from 'react'
 import { compBg, compColor, getTaskPriorityColor } from '../../theme.js'
 import { DAYS_SHORT, MONTHS } from '../../constants.js'
-import { isVacDay } from '../../utils/date.js'
+import { isVacDay, todayKey } from '../../utils/date.js'
 import { getDayPreview, hasClassOnDay } from '../../utils/semester.js'
 import { habitAppliesOn } from '../../utils/helpers.js'
 
@@ -75,6 +75,7 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                 const hasClass = hasClassOnDay(k, state.classes, state)
                 const dayTasks = preview.tasks.filter((t) => !t.done)
                 const taskCount = dayTasks.length
+                const overdueCount = dayTasks.filter(() => k < todStr).length
                 const highestPriorityTask = dayTasks.length > 0
                   ? dayTasks.reduce((max, t) => (t.tier > max.tier ? t : max), dayTasks[0])
                   : null
@@ -124,11 +125,11 @@ export function MacroView({ year, state, onMonth, onHover, onHoverEnd }) {
                       {hasClass && <div className="text-[8px]" aria-hidden="true">📚</div>}
                       {taskCount > 0 && (
                         <div
-                          title={`${taskCount} task${taskCount !== 1 ? 's' : ''} scheduled`}
+                          title={`${taskCount} task${taskCount !== 1 ? 's' : ''} scheduled${overdueCount ? `, ${overdueCount} overdue` : ''}`}
                           className="task-day-badge"
-                          style={{ borderColor: getTaskPriorityColor(highestPriorityTask.tier) }}
+                          style={{ borderColor: overdueCount ? '#c27676' : getTaskPriorityColor(highestPriorityTask.tier), color: overdueCount ? '#e0a0a0' : undefined }}
                         >
-                          TASK{taskCount > 1 ? ` ${taskCount}` : ''}
+                          {overdueCount ? `LATE ${overdueCount > 1 ? overdueCount : ''}` : `TASK${taskCount > 1 ? ` ${taskCount}` : ''}`}
                         </div>
                       )}
                       {hasJournal && <div className="w-2 h-2 rounded-full bg-white border-2 border-zinc-900" />}

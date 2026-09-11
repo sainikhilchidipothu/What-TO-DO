@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { EmptyState } from '../common/EmptyState.jsx'
-import { overdueDuration, todayKey } from '../../utils/date.js'
-import { taskDoneOnDate } from '../../utils/roadmap.js'
+import { isOverdue, overdueDuration, todayKey } from '../../utils/date.js'
+import { taskDoneOnDate, taskDueOnDate } from '../../utils/roadmap.js'
 
 export function TasksList({
   tasks,
@@ -26,7 +26,7 @@ export function TasksList({
     .sort((a, b) => (isDone(a) === isDone(b) ? new Date(a.due) - new Date(b.due) : isDone(a) ? 1 : -1))
     .filter((t) => {
       const done = isDone(t)
-      const ov = new Date(t.due) < now && !done
+      const ov = isOverdue(taskDueOnDate(t, today), done, now)
       return (
         t.name.toLowerCase().includes(search.toLowerCase()) &&
         (tierF === 'all' || String(t.tier) === tierF) &&
@@ -92,15 +92,16 @@ export function TasksList({
           )
         ) : (
           tasksToShow.map((t) => {
-            const due = new Date(t.due)
+            const effectiveDue = taskDueOnDate(t, today)
+            const due = new Date(effectiveDue)
             const done = isDone(t)
-            const ov = due < now && !done
+            const ov = isOverdue(effectiveDue, done, now)
             const tierCol = [null, '#79a887', '#c0a35e', '#c27676'][t.tier]
             const subtasksDone = (t.subtasks || []).filter((s) => s.done).length
             const subtasksTotal = (t.subtasks || []).length
             const isUrgent = urgentTasks.some((ut) => ut.id === t.id)
             const hoursDiff = Math.max(0, Math.floor((due - now) / (1000 * 60 * 60)))
-            const hoursText = ov ? overdueDuration(t.due, now) : hoursDiff < 24 ? `${hoursDiff}h left` : ''
+            const hoursText = ov ? overdueDuration(effectiveDue, now) : hoursDiff < 24 ? `${hoursDiff}h left` : ''
             const linkedClass = t.classId ? classes.find((c) => c.id === t.classId) : null
 
             return (
@@ -124,7 +125,7 @@ export function TasksList({
                     {t.name}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    <p className={`font-sans text-xs font-medium ${ov ? 'text-zinc-200' : isUrgent ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                    <p className={`font-sans text-xs font-medium ${ov ? 'text-[#e0a0a0]' : isUrgent ? 'text-zinc-300' : 'text-zinc-500'}`}>
                       {done
                         ? 'DONE'
                         : ov

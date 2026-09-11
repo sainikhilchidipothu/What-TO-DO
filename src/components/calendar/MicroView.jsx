@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { compBg, compColor, getTaskPriorityColor } from '../../theme.js'
 import { CAT_COLORS, DAYS_SHORT } from '../../constants.js'
-import { isVacDay, todayKey } from '../../utils/date.js'
+import { isOverdue, isVacDay, todayKey } from '../../utils/date.js'
 import { getDayPreview, hasClassOnDay } from '../../utils/semester.js'
 import { habitAppliesOn } from '../../utils/helpers.js'
 import { tasksOnDate } from '../../utils/roadmap.js'
@@ -212,12 +212,14 @@ export function MicroView({ year, month, state, onToggle, onJournal }) {
               <p className="font-sans text-[11px] text-zinc-500 tracking-wide mb-2.5 font-bold">TASKS DUE</p>
               {selTasks.map((t) => {
                 const tc = [null, '#79a887', '#c0a35e', '#c27676'][t.tier]
+                const overdue = isOverdue(t.occurrenceDue || t.due, t.done)
                 return (
                   <div key={t.id} className="bg-zinc-800/60 rounded-lg px-3 py-2.5 mb-1.5 flex items-center gap-2.5 border border-zinc-800">
-                    <div aria-hidden="true" style={{ background: tc }} className="w-[7px] h-[7px] rounded-full flex-shrink-0" />
-                    <p className={`font-sans text-[13px] flex-1 font-semibold ${t.done ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
+                    <div aria-hidden="true" style={{ background: overdue ? '#c27676' : tc }} className="w-[7px] h-[7px] rounded-full flex-shrink-0" />
+                    <p className={`font-sans text-[13px] flex-1 font-semibold ${t.done ? 'text-zinc-500 line-through' : overdue ? 'text-[#e0a0a0]' : 'text-zinc-300'}`}>
                       {t.name}
                     </p>
+                    {overdue && <span className="text-[10px] text-[#e0a0a0] font-black">LATE</span>}
                     {t.recurringInstance && <span className="text-[10px] text-accent font-black">↻</span>}
                   </div>
                 )

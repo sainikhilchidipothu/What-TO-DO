@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { dk, daysLeft, isVacDay, vacationDays, getVacationStatus, overdueDuration } from '../utils/date.js'
+import { dk, daysLeft, isOverdue, isVacDay, vacationDays, getVacationStatus, overdueDuration } from '../utils/date.js'
 
 describe('dk() — date key coercion', () => {
   it('converts a Date to ISO YYYY-MM-DD', () => {
@@ -31,6 +31,12 @@ describe('daysLeft() — countdown math', () => {
 
     it('uses hours before 24 hours have passed', () => {
       expect(overdueDuration('2026-04-20T00:00:00', now)).toBe('12h overdue')
+    })
+    it('marks only unfinished past-due tasks as overdue', () => {
+      const now = new Date('2026-04-20T12:00:00')
+      expect(isOverdue('2026-04-20T11:59:00', false, now)).toBe(true)
+      expect(isOverdue('2026-04-20T11:59:00', true, now)).toBe(false)
+      expect(isOverdue('2026-04-20T13:00:00', false, now)).toBe(false)
     })
 
     it('switches to days after 24 hours', () => {
