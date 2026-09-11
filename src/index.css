@@ -70,6 +70,53 @@
   white-space: nowrap;
 }
 
+.header-nav {
+  background: linear-gradient(180deg, #18181b 0%, #141416 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  position: relative;
+  z-index: 5;
+}
+
+.header-nav button,
+.header-nav label {
+  min-height: 42px;
+}
+
+.today-button {
+  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.15);
+}
+
+.today-button:hover {
+  background: #fde047;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(250, 204, 21, 0.25);
+}
+
+.calendar-subtitle {
+  line-height: 1;
+}
+
+.sidebar {
+  scrollbar-gutter: stable;
+}
+
+.sidebar > button:first-child {
+  background: linear-gradient(145deg, #27272a 0%, #18181b 70%);
+}
+
+.sidebar > button:first-child:hover {
+  background: linear-gradient(145deg, #3f3f46 0%, #27272a 70%);
+}
+
+.main-content {
+  scrollbar-gutter: stable;
+}
+
+.main-content > * {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
 /* Calendar days must stay true squares at every grid width. */
 .calendar-day-cell {
   width: 100%;
@@ -176,11 +223,36 @@
   .header-nav {
     padding: 0 12px !important;
     height: 60px !important;
+    gap: 8px;
+  }
+
+  .header-nav > div:first-child {
+    gap: 8px !important;
+  }
+
+  .header-nav > div:last-child {
+    gap: 6px !important;
   }
 
   .macro-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
+  }
+
+  @media (max-width: 600px) {
+    .calendar-title {
+      font-size: 14px !important;
+      letter-spacing: 0.12em !important;
+    }
+
+    .header-nav > div:last-child > button {
+      padding-left: 9px !important;
+      padding-right: 9px !important;
+    }
+
+    .main-content {
+      padding: 12px !important;
+    }
   }
 
   .micro-layout {

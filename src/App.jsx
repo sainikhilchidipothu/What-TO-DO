@@ -441,6 +441,12 @@ export default function App() {
   }
 
   const showUrgentAlert = !urgentDismissed && urgentTasks.length > 0
+  const jumpToToday = () => {
+    const now = new Date()
+    setCalY(now.getFullYear())
+    setCalM(now.getMonth())
+    setView('micro')
+  }
 
   return (
     <div className="app-container flex flex-row h-screen bg-zinc-950 text-white font-sans overflow-hidden">
@@ -504,9 +510,14 @@ export default function App() {
               ◀
             </button>
 
-            <h1 className="calendar-title flex-1 min-w-0 font-sans font-black text-2xl tracking-[0.3em] text-white text-center truncate">
-              {view === 'macro' ? `${calY} OVERVIEW` : `${MONTHS[calM].toUpperCase()} ${calY}`}
-            </h1>
+            <div className="calendar-heading flex-1 min-w-0 text-center">
+              <h1 className="calendar-title font-sans font-black text-2xl tracking-[0.3em] text-white truncate">
+                {view === 'macro' ? `${calY} OVERVIEW` : `${MONTHS[calM].toUpperCase()} ${calY}`}
+              </h1>
+              <p className="calendar-subtitle hidden sm:block font-sans text-[10px] text-zinc-500 tracking-[0.18em] uppercase mt-1">
+                {view === 'macro' ? 'Year at a glance' : 'Monthly focus'}
+              </p>
+            </div>
 
             <button
               onClick={() => { if (view === 'micro') navM(1); else setCalY((y) => y + 1) }}
@@ -527,10 +538,35 @@ export default function App() {
           </button>
 
           <div className="flex gap-3 items-center shrink-0">
+            <button
+              onClick={jumpToToday}
+              aria-label="Jump to today"
+              title="Jump to today"
+              className="today-button hidden sm:inline-flex font-sans bg-accent text-zinc-950 border border-accent cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-black transition-all duration-150"
+            >
+              TODAY
+            </button>
+            <div className="view-switch hidden md:flex items-center p-1 rounded-lg border border-zinc-700 bg-zinc-950/70" role="group" aria-label="Calendar view">
+              <button
+                onClick={() => setView('macro')}
+                aria-pressed={view === 'macro'}
+                className={`px-3 py-1.5 rounded-md border-none cursor-pointer font-sans text-[11px] font-black tracking-wide transition-colors ${view === 'macro' ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
+              >
+                YEAR
+              </button>
+              <button
+                onClick={() => setView('micro')}
+                aria-pressed={view === 'micro'}
+                className={`px-3 py-1.5 rounded-md border-none cursor-pointer font-sans text-[11px] font-black tracking-wide transition-colors ${view === 'micro' ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
+              >
+                MONTH
+              </button>
+            </div>
             {view === 'micro' && (
               <button
                 onClick={() => setView('macro')}
                 aria-label="Back to year view"
+                title="Back to year view"
                 className="font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 cursor-pointer rounded-lg px-[18px] py-2.5 text-xs tracking-wide font-bold transition-all duration-150"
               >
                 ← YEAR
