@@ -11,7 +11,7 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
-import { taskDoneOnDate, weekStart } from './utils/roadmap.js'
+import { taskDoneOnDate, taskDueOnDate, tasksOnDate, weekStart } from './utils/roadmap.js'
 
 // Components
 import { Sidebar } from './components/sidebar/Sidebar.jsx'
@@ -103,9 +103,29 @@ export default function App() {
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(() => {})
     const tick = () => {
       const now = Date.now()
-      state.tasks.filter((t) => !t.done && t.due).forEach((t) => {
-        const due = new Date(t.due).getTime()
-        if (Math.abs(due - now) < 30000 && !sessionStorage.getItem(`due:${t.id}:${t.due}`)) { notify('Task due now', t.name); sessionStorage.setItem(`due:${t.id}:${t.due}`, '1') }
+      const today = todayKey()
+      const tomorrowDate = new Date(`${today}T12:00:00`)
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1)
+      const tomorrow = tomorrowDate.toISOString().slice(0, 10)
+      const todayTasks = tasksOnDate(state.tasks, today)
+      const occurrences = [
+        ...todayTasks,
+        ...tasksOnDate(state.tasks, tomorrow).filter((task) => !todayTasks.some((current) => current.id === task.id && current.occurrenceDue === task.occurrenceDue)),
+        ...state.tasks.filter((task) => !task.recurring?.frequency && task.due && new Date(task.due).getTime() <= now && !todayTasks.some((current) => current.id === task.id)),
+      ]
+      occurrences.forEach((task) => {
+        const occurrenceDate = task.recurring?.frequency && task.occurrenceDue ? task.occurrenceDue.slice(0, 10) : task.due?.slice(0, 10)
+        if (!occurrenceDate || taskDoneOnDate(task, occurrenceDate)) return
+        const due = new Date(taskDueOnDate(task, occurrenceDate)).getTime()
+        const keyBase = `task:${task.id}:${occurrenceDate}`
+        if (due > now && due - now <= 24 * 60 * 60 * 1000 && !sessionStorage.getItem(`${keyBase}:24h`)) {
+          notify('Task due within 24 hours', task.name)
+          sessionStorage.setItem(`${keyBase}:24h`, '1')
+        }
+        if (due <= now && !sessionStorage.getItem(`${keyBase}:overdue`)) {
+          notify('Task overdue', `${task.name} needs your attention.`)
+          sessionStorage.setItem(`${keyBase}:overdue`, '1')
+        }
       })
       state.classes.forEach((c) => {
         if (!c.time || !c.days?.includes(new Date().getDay())) return
