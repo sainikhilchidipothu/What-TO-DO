@@ -25,12 +25,13 @@ export function UrgentTasksAlert({ urgentTasks, onDismiss }) {
 
       <div className="mb-3 max-h-[120px] overflow-y-auto">
         {urgentTasks.slice(0, 3).map((task) => {
-          const due = new Date(task.due)
+          const due = new Date(task.occurrenceDue || task.due)
           const hoursLeft = Math.ceil((due - new Date()) / (1000 * 60 * 60))
+          const overdue = due <= new Date()
           return (
             <div key={task.id} className="px-3 py-2 mb-1.5 bg-zinc-950/60 border border-zinc-800 rounded-md">
               <p className="font-sans text-xs text-white mb-0.5">{task.name}</p>
-              <p className="font-sans text-[10px] text-red-500">{hoursLeft}h left</p>
+              <p className="font-sans text-[10px] text-red-500">{overdue ? 'OVERDUE · needs attention' : `${hoursLeft}h left`}</p>
             </div>
           )
         })}

@@ -98,9 +98,12 @@ export default function App() {
 
   useEffect(() => {
     const notify = (title, body) => {
-      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body })
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body })
+        return true
+      }
+      return false
     }
-    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(() => {})
     const tick = () => {
       const now = Date.now()
       const today = todayKey()
@@ -119,22 +122,29 @@ export default function App() {
         const due = new Date(taskDueOnDate(task, occurrenceDate)).getTime()
         const keyBase = `task:${task.id}:${occurrenceDate}`
         if (due > now && due - now <= 24 * 60 * 60 * 1000 && !sessionStorage.getItem(`${keyBase}:24h`)) {
-          notify('Task due within 24 hours', task.name)
-          sessionStorage.setItem(`${keyBase}:24h`, '1')
+          if (notify('Task due within 24 hours', task.name)) sessionStorage.setItem(`${keyBase}:24h`, '1')
         }
         if (due <= now && !sessionStorage.getItem(`${keyBase}:overdue`)) {
-          notify('Task overdue', `${task.name} needs your attention.`)
-          sessionStorage.setItem(`${keyBase}:overdue`, '1')
+          if (notify('Task overdue', `${task.name} needs your attention.`)) sessionStorage.setItem(`${keyBase}:overdue`, '1')
         }
       })
       state.classes.forEach((c) => {
         if (!c.time || !c.days?.includes(new Date().getDay())) return
         const [hour, minute] = c.time.split(':').map(Number)
         const start = new Date(); start.setHours(hour, minute, 0, 0)
-        if (start.getTime() - now > 9.5 * 60000 && start.getTime() - now < 10.5 * 60000 && !sessionStorage.getItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`)) { notify('Class starting in 10 minutes', c.name); sessionStorage.setItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`, '1') }
+        if (start.getTime() - now > 9.5 * 60000 && start.getTime() - now < 10.5 * 60000 && !sessionStorage.getItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`) && notify('Class starting in 10 minutes', c.name)) sessionStorage.setItem(`class:${c.id}:${start.toISOString().slice(0, 10)}`, '1')
       })
     }
-    const id = setInterval(tick, 30000); tick()
+    let id
+    const start = () => {
+      tick()
+      id = setInterval(tick, 30000)
+    }
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(start).catch(start)
+    } else {
+      start()
+    }
     return () => clearInterval(id)
   }, [state.tasks, state.classes])
 
