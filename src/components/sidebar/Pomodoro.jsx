@@ -1,63 +1,129 @@
 // ─── Pomodoro ─────────────────────────────────────────────────────────────────
+// The countdown is driven by an absolute end timestamp (`endsAt`) rather than a
+// per-second decrement. Browsers throttle (or pause) setInterval in background
+// tabs, so a counter that subtracts 1 each tick falls behind real time and the
+// timer appears to stop when you switch away. Computing the remaining time from
+// Date.now() on each render is immune to that — and persisting the timer to
+// localStorage means it survives reloads, remounts, and navigation.
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+
+const TIMER_KEY = 'what-to-do-pomodoro'
+
+const loadTimer = () => {
+  try {
+    const raw = localStorage.getItem(TIMER_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* noop */ }
+  return null
+}
+const saveTimer = (t) => {
+  try { localStorage.setItem(TIMER_KEY, JSON.stringify(t)) } catch { /* noop */ }
+}
+
+const beep = () => {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext
+    if (!AC) return
+    const a = new AC()
+    const o = a.createOscillator()
+    const g = a.createGain()
+    o.connect(g)
+    g.connect(a.destination)
+    o.type = 'sine'
+    o.frequency.value = 880
+    g.gain.setValueAtTime(0.3, a.currentTime)
+    g.gain.linearRampToValueAtTime(0, a.currentTime + 0.4)
+    o.start()
+    o.stop(a.currentTime + 0.4)
+  } catch { /* noop */ }
+}
 
 export function Pomodoro({ presets, setPresets, onSessionComplete }) {
-  const [secs, setSecs] = useState(presets.focus * 60)
-  const [run, setRun] = useState(false)
-  const [type, setType] = useState('focus')
-  const ref = useRef(null)
+  // timer: { type, running, endsAt (ms when running, else null), remaining (secs when paused) }
+  const [timer, setTimer] = useState(() => {
+    const saved = loadTimer()
+    if (saved && saved.type) return saved
+    return { type: 'focus', running: false, endsAt: null, remaining: presets.focus * 60 }
+  })
+  const { type, running, endsAt, remaining } = timer
+  const [, forceTick] = useState(0)
+  const firedForRef = useRef(null) // guards one completion per endsAt
 
+  // Persist on every change so a reload/remount restores the exact timer.
+  useEffect(() => { saveTimer(timer) }, [timer])
+
+  // While running, re-render ~4×/s so the display stays smooth. Correctness
+  // comes from the timestamp math below, not from the tick cadence.
   useEffect(() => {
-    if (run) {
-      ref.current = setInterval(() => {
-        setSecs((s) => {
-          if (s <= 1) {
-            setRun(false)
-            const nxt = type === 'focus' ? 'shortBreak' : 'focus'
-            setType(nxt)
-            setSecs(presets[nxt] * 60)
-            onSessionComplete?.()
-            try {
-              const AC = window.AudioContext || window.webkitAudioContext
-              if (AC) {
-                const a = new AC()
-                const o = a.createOscillator()
-                const g = a.createGain()
-                o.connect(g)
-                g.connect(a.destination)
-                o.type = 'sine'
-                o.frequency.value = 880
-                g.gain.setValueAtTime(0.3, a.currentTime)
-                g.gain.linearRampToValueAtTime(0, a.currentTime + 0.4)
-                o.start()
-                o.stop(a.currentTime + 0.4)
-              }
-            } catch { /* noop */ }
-            return 0
-          }
-          return s - 1
-        })
-      }, 1000)
-    } else {
-      clearInterval(ref.current)
-    }
-    return () => clearInterval(ref.current)
-  }, [run, type, presets, onSessionComplete])
+    if (!running) return
+    const id = setInterval(() => forceTick((n) => n + 1), 250)
+    return () => clearInterval(id)
+  }, [running])
 
-  const reset = () => { setRun(false); setSecs(presets[type] * 60) }
+  // Recompute immediately when the tab is refocused (a throttled background
+  // interval may be far behind real time at that moment).
+  useEffect(() => {
+    const bump = () => forceTick((n) => n + 1)
+    document.addEventListener('visibilitychange', bump)
+    window.addEventListener('focus', bump)
+    return () => {
+      document.removeEventListener('visibilitychange', bump)
+      window.removeEventListener('focus', bump)
+    }
+  }, [])
+
+  const secs = running && endsAt != null
+    ? Math.max(0, Math.round((endsAt - Date.now()) / 1000))
+    : remaining
+
+  // Completion: fires once per session (keyed on endsAt). Runs on every render
+  // while running, including the first render after restoring an elapsed timer.
+  useEffect(() => {
+    if (!running || endsAt == null) return
+    if (Date.now() >= endsAt && firedForRef.current !== endsAt) {
+      firedForRef.current = endsAt
+      const nxt = type === 'focus' ? 'shortBreak' : 'focus'
+      setTimer({ type: nxt, running: false, endsAt: null, remaining: presets[nxt] * 60 })
+      onSessionComplete?.()
+      beep()
+    }
+  })
+
+  const toggle = () => {
+    setTimer((prev) => {
+      if (prev.running) {
+        const rem = prev.endsAt != null
+          ? Math.max(0, Math.round((prev.endsAt - Date.now()) / 1000))
+          : prev.remaining
+        return { ...prev, running: false, endsAt: null, remaining: rem }
+      }
+      const rem = prev.remaining > 0 ? prev.remaining : presets[prev.type] * 60
+      firedForRef.current = null
+      return { ...prev, running: true, endsAt: Date.now() + rem * 1000, remaining: rem }
+    })
+  }
+
+  const reset = () => {
+    firedForRef.current = null
+    setTimer({ type, running: false, endsAt: null, remaining: presets[type] * 60 })
+  }
+  const switchType = (t) => {
+    firedForRef.current = null
+    setTimer({ type: t, running: false, endsAt: null, remaining: presets[t] * 60 })
+  }
+
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   const total = presets[type] * 60
   const pct = secs / total
   const R = 60
   const C = 2 * Math.PI * R
 
-  const switchType = (t) => { setRun(false); setType(t); setSecs(presets[t] * 60) }
   const adjust = (key, d) => {
     const v = Math.max(1, presets[key] + d)
     const np = { ...presets, [key]: v }
     setPresets(np)
-    if (!run && key === type) setSecs(v * 60)
+    if (!running && key === type) setTimer((prev) => ({ ...prev, remaining: v * 60 }))
   }
 
   return (
@@ -109,13 +175,13 @@ export function Pomodoro({ presets, setPresets, onSessionComplete }) {
 
       <div className="flex gap-2.5 mb-4">
         <button
-          onClick={() => setRun(!run)}
-          aria-label={run ? 'Pause timer' : 'Start timer'}
+          onClick={toggle}
+          aria-label={running ? 'Pause timer' : 'Start timer'}
           className={`flex-1 py-3.5 border-none cursor-pointer rounded-lg font-sans text-[13px] tracking-wide font-bold transition-all duration-150 ${
-            run ? 'bg-zinc-900 text-zinc-400' : 'bg-accent text-zinc-950'
+            running ? 'bg-zinc-900 text-zinc-400' : 'bg-accent text-zinc-950'
           }`}
         >
-          {run ? '⏸ PAUSE' : '▶ START'}
+          {running ? '⏸ PAUSE' : '▶ START'}
         </button>
         <button
           onClick={reset}

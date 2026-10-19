@@ -11,6 +11,8 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
+import { useAuth } from './hooks/useAuth.js'
+import { useCloudSync } from './hooks/useCloudSync.js'
 import { taskDoneOnDate, taskDueOnDate, tasksOnDate, weekStart } from './utils/roadmap.js'
 
 // Components
@@ -44,10 +46,16 @@ import { TaskModal } from './components/modals/TaskModal.jsx'
 import { SemesterModal } from './components/modals/SemesterModal.jsx'
 import { RoadmapModal } from './components/modals/RoadmapModal.jsx'
 import { CommandPalette } from './components/overlays/CommandPalette.jsx'
+import { AccountModal } from './components/account/AccountModal.jsx'
+import { ConflictModal } from './components/account/ConflictModal.jsx'
 
 export default function App() {
   const [state, setState] = useAppState()
   const [toast, showToast] = useToast()
+
+  // Cloud accounts + cross-device sync (no-op unless Supabase is configured).
+  const auth = useAuth()
+  const sync = useCloudSync({ configured: auth.configured, user: auth.user, state, setState })
 
   // ── UI state ─────────────────────────────────────────────────────────────
   const [intro, setIntro] = useState(true)
@@ -602,6 +610,22 @@ export default function App() {
                 ← YEAR
               </button>
             )}
+            {auth.configured && (
+              <button
+                onClick={() => setModal('account')}
+                aria-label={auth.user ? 'Account and sync' : 'Sign in to sync across devices'}
+                title={auth.user ? `Signed in as ${auth.user.email}` : 'Sign in to sync'}
+                className={`${ICON_BTN} relative`}
+              >
+                {auth.user ? '👤' : '🔑'}
+                {auth.user && (
+                  <span
+                    className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-zinc-900 ${sync.status === 'error' ? 'bg-amber-400' : 'bg-green-500'}`}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+            )}
             <button onClick={() => exportToFile(state)} aria-label="Export data" title="Export" className={ICON_BTN}>💾</button>
             <label title="Import" aria-label="Import data" className={`${ICON_BTN} inline-block`}>
               📂<input type="file" accept=".json" onChange={handleImport} className="hidden" />
@@ -721,6 +745,8 @@ export default function App() {
         <NameModal initial={state.userName} onClose={close} onSave={saveUserName} />
       )}
       {modal === 'roadmap' && <RoadmapModal state={state} onClose={close} onSaveGrade={saveGrade} onSaveReview={saveReview} />}
+      {modal === 'account' && <AccountModal auth={auth} syncStatus={sync.status} onClose={close} />}
+      {sync.conflict && <ConflictModal local={state} cloud={sync.conflict.cloud} onResolve={sync.resolveConflict} />}
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} actions={[
         { label: 'New task', shortcut: 'Ctrl+T', run: () => openTask() },
         { label: 'New goal', shortcut: 'Ctrl+N', run: () => openHabit() },
