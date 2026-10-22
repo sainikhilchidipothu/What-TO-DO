@@ -1,6 +1,6 @@
-// ─── AccountModal ───────────────────────────────────────────────────────────
-// Magic-link sign-in and signed-in account view. Rendered only when Supabase
-// is configured (the header button that opens it is hidden otherwise).
+// Sign-in (email magic link) and the signed-in account view. Only rendered
+// when Supabase is configured — the header button that opens it is hidden
+// otherwise.
 
 import { useState } from 'react'
 import { ModalShell } from '../common/ModalShell.jsx'
@@ -33,12 +33,12 @@ export function AccountModal({ auth, syncStatus, onClose }) {
   return (
     <ModalShell onClose={onClose} width={440}>
       <h2 id="modal-title" className="font-sans text-xl font-black text-white tracking-wide mb-1">
-        {user ? 'Your account' : 'Sign in to sync'}
+        {user ? 'Your account' : 'Sign in'}
       </h2>
       <p className="font-sans text-[13px] text-zinc-400 mb-6 leading-relaxed">
         {user
           ? 'Your progress syncs across every device you sign in on.'
-          : 'Create a free account (or sign back in) to keep your goals, tasks, and journal in sync across devices. Everything keeps working offline either way.'}
+          : 'Sign in to keep your goals, tasks, and journal in sync across devices. Everything keeps working offline either way.'}
       </p>
 
       {user ? (
@@ -64,7 +64,6 @@ export function AccountModal({ auth, syncStatus, onClose }) {
         </div>
       ) : sent ? (
         <div className="rounded-xl border border-accent/40 bg-accent/5 p-5 text-center">
-          <div className="text-3xl mb-2" aria-hidden="true">📬</div>
           <p className="font-sans text-sm text-white font-bold mb-1">Check your email</p>
           <p className="font-sans text-[13px] text-zinc-400 leading-relaxed break-all">
             We sent a sign-in link to {email}. Open it on this device to finish signing in.

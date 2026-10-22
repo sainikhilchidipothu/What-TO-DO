@@ -1,5 +1,4 @@
-// ─── Cloud state access ─────────────────────────────────────────────────────
-// Reads/writes the single JSONB row that holds a user's entire app state.
+// Read/write the single JSON row that holds a user's whole app state.
 // One row per user, keyed by auth user id, guarded by Row-Level Security.
 
 import { supabase } from './supabase.js'

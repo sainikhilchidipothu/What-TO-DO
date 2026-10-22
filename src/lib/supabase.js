@@ -1,9 +1,6 @@
-// ─── Supabase client ────────────────────────────────────────────────────────
-// Env-gated: the app stays fully offline-first and untouched when these two
-// variables are absent (local dev without a `.env.local`, or a deploy with no
-// Supabase keys set). The anon key is designed to be exposed in frontend code —
-// it only grants what Row-Level Security policies allow — but it still lives in
-// env vars (never hardcoded) because this repository is public.
+// Supabase client. Stays null when the env vars aren't set, so the app runs
+// fully offline with no accounts. The anon key is safe in the frontend (it's
+// limited by Row-Level Security); keep it in env vars, not hardcoded.
 
 import { createClient } from '@supabase/supabase-js'
 

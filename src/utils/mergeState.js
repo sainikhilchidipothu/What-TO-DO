@@ -1,9 +1,7 @@
-// ─── State merge helpers ────────────────────────────────────────────────────
-// Used only when a device that already has local data signs into an account
-// that also has cloud data. The user is asked how to reconcile; `mergeStates`
-// backs the "combine both" choice. Arrays of records are unioned by id (later
-// value wins on overlap); keyed objects (journal/history/reviews) are merged by
-// key; progress counters take the larger value.
+// Helpers for reconciling local and cloud data when a device with existing
+// data signs into an account that also has data. mergeStates backs the
+// "combine both" choice: record arrays are unioned by id, keyed objects
+// (journal/history/reviews) are merged by key, and counters take the larger.
 
 const unionById = (a = [], b = []) => {
   const map = new Map()

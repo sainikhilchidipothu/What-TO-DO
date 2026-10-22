@@ -1,10 +1,9 @@
 // ─── Pomodoro ─────────────────────────────────────────────────────────────────
-// The countdown is driven by an absolute end timestamp (`endsAt`) rather than a
-// per-second decrement. Browsers throttle (or pause) setInterval in background
-// tabs, so a counter that subtracts 1 each tick falls behind real time and the
-// timer appears to stop when you switch away. Computing the remaining time from
-// Date.now() on each render is immune to that — and persisting the timer to
-// localStorage means it survives reloads, remounts, and navigation.
+// Countdown runs off an absolute end timestamp instead of decrementing a
+// counter each tick. setInterval gets throttled in background tabs, which made
+// the old timer drift and look stopped; deriving the remaining time from
+// Date.now() avoids that, and persisting to localStorage keeps it running
+// across reloads and navigation.
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 

@@ -1,7 +1,6 @@
-// ─── useAuth ────────────────────────────────────────────────────────────────
-// Thin wrapper over Supabase Auth (email magic link). When Supabase isn't
-// configured it reports `configured: false` and exposes no-op actions, so the
-// UI can simply hide the account controls and the app runs offline-only.
+// Wrapper over Supabase Auth (email magic link). When Supabase isn't
+// configured it reports configured: false with no-op actions, so the UI hides
+// the account controls and the app runs offline only.
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js'

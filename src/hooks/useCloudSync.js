@@ -1,15 +1,9 @@
-// ─── useCloudSync ───────────────────────────────────────────────────────────
-// Keeps the local app state (localStorage, via useAppState) in step with the
-// user's single cloud row. Design goals:
-//   • Offline-first: localStorage is always the working copy; the cloud is a
-//     sync target that only engages when a user is signed in.
-//   • No ping-pong: `lastSyncedJson` records the serialized state we last
-//     pushed or pulled; a change only pushes when the state actually differs
-//     from it, and applying a remote update sets it first so the push effect
-//     treats the resulting change as already-synced.
-//   • No silent data loss: when a device with local content signs into an
-//     account that already has cloud content, we surface a conflict for the
-//     user to resolve instead of overwriting either side.
+// Keeps localStorage (via useAppState) in step with the user's cloud row.
+// localStorage is always the working copy; the cloud only engages when signed
+// in. lastSyncedJson holds the state we last pushed or pulled so we only push
+// real changes and don't bounce a pulled update straight back up. If a device
+// with data signs into an account that also has data, we ask the user how to
+// reconcile instead of overwriting either side.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { fetchCloudState, pushCloudState } from '../lib/cloud.js'
