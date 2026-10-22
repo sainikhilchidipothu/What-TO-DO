@@ -11,6 +11,8 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
+import { useAuth } from './hooks/useAuth.js'
+import { useCloudSync } from './hooks/useCloudSync.js'
 import { taskDoneOnDate, taskDueOnDate, tasksOnDate, weekStart } from './utils/roadmap.js'
 
 // Components
@@ -44,10 +46,16 @@ import { TaskModal } from './components/modals/TaskModal.jsx'
 import { SemesterModal } from './components/modals/SemesterModal.jsx'
 import { RoadmapModal } from './components/modals/RoadmapModal.jsx'
 import { CommandPalette } from './components/overlays/CommandPalette.jsx'
+import { AccountModal } from './components/account/AccountModal.jsx'
+import { ConflictModal } from './components/account/ConflictModal.jsx'
 
 export default function App() {
   const [state, setState] = useAppState()
   const [toast, showToast] = useToast()
+
+  // Cloud accounts + cross-device sync (no-op unless Supabase is configured).
+  const auth = useAuth()
+  const sync = useCloudSync({ configured: auth.configured, user: auth.user, state, setState })
 
   // ── UI state ─────────────────────────────────────────────────────────────
   const [intro, setIntro] = useState(true)
@@ -287,7 +295,7 @@ export default function App() {
         level: Math.floor(newXP / 100) + 1,
       }
     })
-    if (!wasCompleted) showToast('+10 XP! Task completed! 🎉')
+    if (!wasCompleted) showToast('+10 XP — task completed ✓')
   }
 
   const undoDelete = () => {
@@ -347,7 +355,7 @@ export default function App() {
     setState({ vacationMode: { active: true, startDate: start, endDate: end } })
     setVacationWarning({ open: false, taskCount: 0 })
     close()
-    showToast('Vacation scheduled 🏖')
+    showToast('Vacation scheduled ✓')
   }
 
   const deleteVacation = () => {
@@ -383,7 +391,7 @@ export default function App() {
       }
     })
     close()
-    showToast(data.semesterActive ? 'Semester saved 🎓' : 'Semester updated')
+    showToast(data.semesterActive ? 'Semester saved ✓' : 'Semester updated')
   }
 
   const clearSemester = () => {
@@ -433,7 +441,7 @@ export default function App() {
   const completeFirstTimeSetup = (date) => {
     setState((prev) => ({ ...prev, targetDate: date }))
     setFirstTimeSetupOpen(false)
-    showToast('Welcome to What-TO-DO! 🎉')
+    showToast('Welcome to What-TO-DO')
   }
 
   const saveUserName = (name) => {
@@ -483,7 +491,7 @@ export default function App() {
       {firstTimeSetupOpen && <FirstTimeSetup initialName={state.userName} onComplete={(date, name) => {
         setState((prev) => ({ ...prev, targetDate: date, userName: name.trim() }))
         setFirstTimeSetupOpen(false)
-        showToast('Welcome to What-TO-DO! 🎉')
+        showToast('Welcome to What-TO-DO')
       }} />}
       {intro && !firstTimeSetupOpen && (
         <IntroScreen targetDate={state.targetDate} remaining={remaining} onContinue={() => setIntro(false)} />
@@ -516,7 +524,7 @@ export default function App() {
         onPomodoroComplete={() => {
           setState((prev) => ({ ...prev, pomodoroSessions: [...(prev.pomodoroSessions || []), { id: uid(), startedAt: new Date().toISOString(), minutes: prev.timerPresets.focus, type: 'focus' }] }))
           if ('Notification' in window && Notification.permission === 'granted') new Notification('Pomodoro complete', { body: 'Great work. Time for a break.' })
-          showToast('⏱ Session complete!')
+          showToast('Session complete ✓')
         }}
       />
 
@@ -564,7 +572,7 @@ export default function App() {
             className="greeting-button hidden lg:flex flex-col items-start justify-center shrink-0 w-[clamp(130px,16vw,230px)] min-w-0 mr-4 px-4 py-2 rounded-xl border border-zinc-700 bg-zinc-950/70 hover:bg-zinc-800 hover:border-accent cursor-pointer text-left transition-all duration-150"
           >
             <span className="font-sans text-[10px] uppercase tracking-[0.22em] text-accent font-black">HELLO</span>
-            <span className="greeting-name block w-full min-w-0 truncate font-sans text-lg font-black text-white leading-tight" title={state.userName || 'there'}>{state.userName || 'there'} <span aria-hidden="true">👋</span></span>
+            <span className="greeting-name block w-full min-w-0 truncate font-sans text-lg font-black text-white leading-tight" title={state.userName || 'there'}>{state.userName || 'there'}</span>
           </button>
 
           <div className="flex gap-3 items-center shrink-0">
@@ -602,19 +610,41 @@ export default function App() {
                 ← YEAR
               </button>
             )}
-            <button onClick={() => exportToFile(state)} aria-label="Export data" title="Export" className={ICON_BTN}>💾</button>
-            <label title="Import" aria-label="Import data" className={`${ICON_BTN} inline-block`}>
-              📂<input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            {auth.configured && (
+              auth.user ? (
+                <button
+                  onClick={() => setModal('account')}
+                  title={`Signed in as ${auth.user.email}`}
+                  className={`${ACTION_BTN} inline-flex items-center gap-2`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${sync.status === 'error' ? 'bg-amber-400' : 'bg-green-500'}`}
+                    aria-hidden="true"
+                  />
+                  Account
+                </button>
+              ) : (
+                <button
+                  onClick={() => setModal('account')}
+                  title="Sign in to sync across your devices"
+                  className="sign-in-button font-sans bg-accent text-zinc-950 border border-accent hover:brightness-110 cursor-pointer rounded-lg px-4 py-2.5 text-xs tracking-wide font-black transition-all duration-150"
+                >
+                  Sign in
+                </button>
+              )
+            )}
+            <button onClick={() => exportToFile(state)} title="Export your data as a JSON backup" className={`${ACTION_BTN} hidden sm:inline-flex`}>Export</button>
+            <label title="Import data from a JSON backup" className={`${ACTION_BTN} hidden sm:inline-flex items-center`}>
+              Import<input type="file" accept=".json" onChange={handleImport} className="hidden" />
             </label>
-            <button onClick={() => setModal('roadmap')} aria-label="Weekly review and analytics" className={ICON_BTN}>📊</button>
-            <button onClick={() => setPaletteOpen(true)} aria-label="Open command palette" className={ICON_BTN}>⌘K</button>
+            <button onClick={() => setModal('roadmap')} title="Weekly review and analytics" className={ACTION_BTN}>Review</button>
+            <button onClick={() => setPaletteOpen(true)} title="Command palette (⌘K)" className={ACTION_BTN}>Search</button>
             <button
               onClick={() => setDeleteAllWarning(true)}
-              aria-label="Delete all data"
-              title="Delete All Data"
-              className="bg-red-950/50 border border-red-500 text-red-500 hover:bg-red-950 cursor-pointer rounded-lg px-3.5 py-2.5 text-base transition-all duration-150"
+              title="Delete all data"
+              className="font-sans bg-red-950/40 border border-red-600/70 text-red-400 hover:bg-red-950 hover:text-red-300 cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-bold transition-all duration-150"
             >
-              🗑️
+              Clear all
             </button>
           </div>
         </div>
@@ -721,6 +751,8 @@ export default function App() {
         <NameModal initial={state.userName} onClose={close} onSave={saveUserName} />
       )}
       {modal === 'roadmap' && <RoadmapModal state={state} onClose={close} onSaveGrade={saveGrade} onSaveReview={saveReview} />}
+      {modal === 'account' && <AccountModal auth={auth} syncStatus={sync.status} onClose={close} />}
+      {sync.conflict && <ConflictModal local={state} cloud={sync.conflict.cloud} onResolve={sync.resolveConflict} />}
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} actions={[
         { label: 'New task', shortcut: 'Ctrl+T', run: () => openTask() },
         { label: 'New goal', shortcut: 'Ctrl+N', run: () => openHabit() },
@@ -732,4 +764,4 @@ export default function App() {
   )
 }
 
-const ICON_BTN = 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 cursor-pointer rounded-lg px-3.5 py-2.5 text-base transition-all duration-150'
+const ACTION_BTN = 'font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-bold transition-all duration-150'

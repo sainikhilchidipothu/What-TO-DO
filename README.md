@@ -20,7 +20,8 @@ A personal productivity tracker to keep your daily routine in one place. Goals, 
 - **XP & levels**, earn XP for completing tasks
 - **Keyboard shortcuts** for power users
 - **Responsive design** that works on desktop, tablet, and mobile
-- **Offline-first**, everything saves to your browser. No sign-up, no account, no tracking.
+- **Offline-first**, everything saves to your browser by default — no account required, no tracking
+- **Optional account sync** — sign in with an email link to keep your data in sync across devices (see [cloud sync setup](docs/SUPABASE_SETUP.md))
 - **Import / export** your data as a JSON backup at any time
 - **Recurring tasks** — daily, weekly, or selected weekdays (for example Mon/Wed/Fri)
 - **Browser reminders** for due tasks, Pomodoro completion, and classes starting in 10 minutes
@@ -80,13 +81,15 @@ src/
 └── constants.js  # App constants
 ```
 
+## Optional cloud sync
+
+By default the app is fully offline and needs no setup. To enable accounts and
+cross-device sync, follow [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) and
+add your Supabase keys to a local `.env.local` (see `.env.example`).
+
 ## Feedback
 
 Found a bug or have a suggestion? Open an issue or send a PR.
-
-## Screenshots and GIFs
-
-Visual assets are intentionally not committed as fabricated binaries. To add real screenshots or a GIF, capture the running app and place the files in `docs/`, then reference them here.
 
 ## License
 
