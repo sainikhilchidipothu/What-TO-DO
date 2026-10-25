@@ -43,6 +43,10 @@ export const loadState = () => {
       next.level = Math.floor(next.xp / 100) + 1
     }
 
+    // Migration: anyone with a save from before the onboarded flag has
+    // already been through setup.
+    if (parsed.onboarded === undefined) next.onboarded = true
+
     // Migration: old saves had semesterStart/End without semesterActive.
     // If dates existed but no active flag, default to inactive so user
     // explicitly opts in via the new modal.
@@ -107,6 +111,7 @@ export const importFromFile = (file) =>
         }
         resolve({
           ...next,
+          onboarded: parsed.onboarded ?? true,
           pomodoroSessions: next.pomodoroSessions || [],
           grades: next.grades || [],
           weeklyReviews: next.weeklyReviews || {},

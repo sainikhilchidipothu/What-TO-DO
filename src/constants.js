@@ -41,6 +41,9 @@ export const SPRING_2026_SEMESTER = {
 
 export const DEFAULT_STATE = {
   userName: '',
+  // False until the welcome setup (name + target date) is finished. Saves made
+  // before this flag existed are treated as already set up.
+  onboarded: false,
   habits: [],    // { id, name, category, specificDays, pinned, startDate? } — startDate gates tracking to that date onward
 
   tasks: [],      // { id, name, due, tier, done, classId?, subtasks:[], recurring:null, dependsOn:[] }

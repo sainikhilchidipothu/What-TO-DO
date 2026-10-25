@@ -31,6 +31,7 @@ export function mergeStates(local, cloud) {
     xp: Math.max(local.xp || 0, cloud.xp || 0),
     level: Math.max(local.level || 1, cloud.level || 1),
     userName: local.userName || cloud.userName || '',
+    onboarded: local.onboarded !== false || cloud.onboarded !== false,
   }
 }
 

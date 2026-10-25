@@ -1,5 +1,6 @@
 // Wrapper over Supabase Auth. Supports email + password (sign in / create
-// account), email magic links, and password reset. When Supabase isn't
+// account), email magic links, password reset, and a display name stored in
+// the user's metadata (full_name) so it follows the account across devices. When Supabase isn't
 // configured it reports configured: false with no-op actions, so the app runs
 // offline only.
 
@@ -37,6 +38,11 @@ export function friendlyAuthError(err) {
   return msg
 }
 
+/** The name saved on the account, or '' if none was ever set. */
+export function accountName(user) {
+  return (user?.user_metadata?.full_name || '').trim()
+}
+
 export function useAuth() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
@@ -72,12 +78,12 @@ export function useAuth() {
     return supabase.auth.signInWithPassword({ email: email.trim(), password })
   }, [])
 
-  const signUp = useCallback(async (email, password) => {
+  const signUp = useCallback(async (email, password, name) => {
     if (!isSupabaseConfigured) return notConfigured()
     return supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: redirectTo },
+      options: { emailRedirectTo: redirectTo, data: { full_name: name.trim() } },
     })
   }, [redirectTo])
 
@@ -101,6 +107,11 @@ export function useAuth() {
     return res
   }, [])
 
+  const updateName = useCallback(async (name) => {
+    if (!isSupabaseConfigured) return notConfigured()
+    return supabase.auth.updateUser({ data: { full_name: name.trim() } })
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured) return
     await supabase.auth.signOut()
@@ -119,6 +130,7 @@ export function useAuth() {
     signInWithEmail,
     sendPasswordReset,
     updatePassword,
+    updateName,
     signOut,
   }
 }

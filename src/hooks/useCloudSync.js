@@ -16,6 +16,7 @@ export function useCloudSync({ configured, user, state, setState }) {
   const [conflict, setConflict] = useState(null) // { cloud } awaiting user choice
   const lastSyncedJson = useRef(null)
   const ready = useRef(false) // true once the initial reconcile has settled
+  const [reconciled, setReconciled] = useState(false) // render-visible mirror of ready
   const pushTimer = useRef(null)
 
   // Replace local state with a cloud snapshot without triggering a push back.
@@ -28,11 +29,14 @@ export function useCloudSync({ configured, user, state, setState }) {
   useEffect(() => {
     if (!configured || !user) {
       ready.current = false
+      setReconciled(false)
       lastSyncedJson.current = null
       setStatus('idle')
       return
     }
     let cancelled = false
+    ready.current = false
+    setReconciled(false)
     setStatus('syncing')
     ;(async () => {
       try {
@@ -43,10 +47,12 @@ export function useCloudSync({ configured, user, state, setState }) {
           await pushCloudState(user.id, state)
           lastSyncedJson.current = JSON.stringify(state)
           ready.current = true
+          setReconciled(true)
         } else if (isEmptyState(state) || JSON.stringify(state) === JSON.stringify(cloud)) {
           // Nothing local worth keeping (or already identical): adopt cloud.
           applyRemote(cloud)
           ready.current = true
+          setReconciled(true)
         } else {
           // Both sides have distinct data — let the user decide.
           setConflict({ cloud })
@@ -123,6 +129,7 @@ export function useCloudSync({ configured, user, state, setState }) {
         lastSyncedJson.current = JSON.stringify(resolved)
       }
       ready.current = true
+      setReconciled(true)
       setStatus('synced')
     } catch (e) {
       console.warn('Conflict resolution failed:', e)
@@ -130,5 +137,5 @@ export function useCloudSync({ configured, user, state, setState }) {
     }
   }, [conflict, state, user, applyRemote])
 
-  return { status, conflict, resolveConflict }
+  return { status, conflict, resolveConflict, reconciled }
 }

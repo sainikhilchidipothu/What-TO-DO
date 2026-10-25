@@ -3,7 +3,7 @@
 // mutate app state. Everything else lives in its own component.
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { MONTHS, STORAGE_KEY, DEFAULT_STATE } from './constants.js'
+import { DEFAULT_STATE } from './constants.js'
 import { clearState, exportToFile, importFromFile } from './utils/storage.js'
 import { daysLeft, todayKey, isVacDay, vacationDays, getVacationStatus, uid } from './utils/date.js'
 
@@ -11,7 +11,7 @@ import { useAppState } from './hooks/useAppState.js'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js'
 import { useUrgentTasks } from './hooks/useUrgentTasks.js'
 import { useToast } from './hooks/useToast.js'
-import { useAuth } from './hooks/useAuth.js'
+import { useAuth, accountName } from './hooks/useAuth.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
 import { taskDoneOnDate, taskDueOnDate, tasksOnDate, weekStart } from './utils/roadmap.js'
 
@@ -19,6 +19,7 @@ import { taskDoneOnDate, taskDueOnDate, tasksOnDate, weekStart } from './utils/r
 import { Sidebar } from './components/sidebar/Sidebar.jsx'
 import { MacroView } from './components/calendar/MacroView.jsx'
 import { MicroView } from './components/calendar/MicroView.jsx'
+import { AppHeader } from './components/header/AppHeader.jsx'
 
 import { IntroScreen } from './components/common/IntroScreen.jsx'
 import { Toast } from './components/overlays/Toast.jsx'
@@ -70,6 +71,18 @@ export default function App() {
   const [editId, setEditId] = useState(null)
   const [editCId, setEditCId] = useState(null)
   const [jDate, setJDate] = useState(todayKey())
+  const [accountMode, setAccountMode] = useState('signin') // which tab the sign-in modal opens on
+
+  // ── Account & onboarding ─────────────────────────────────────────────────
+  // When signed in, the name saved on the account wins over the device copy.
+  const signedIn = !!auth.user
+  const cloudName = accountName(auth.user)
+  const displayName = (signedIn && cloudName) || state.userName
+  // Don't decide anything about setup until we know whether cloud data exists.
+  const syncSettled = !auth.loading && (!signedIn || (sync.reconciled && !sync.conflict) || sync.status === 'error')
+  const needsOnboarding = state.onboarded === false && syncSettled && modal !== 'account'
+
+  const openSignIn = (mode = 'signin') => { setAccountMode(mode); setModal('account') }
 
   // Open the account modal on its own when the user lands here from a
   // password-reset link, or from an email link that failed (expired etc.).
@@ -79,6 +92,25 @@ export default function App() {
       setModal('account')
     }
   }, [auth.recovering, auth.urlError])
+
+  // Keep the account name and the device name in step, once per account name:
+  // adopt the account's name, backfill an account that has none from this
+  // device, or ask for one if neither side has it.
+  const nameCheckedFor = useRef(null)
+  useEffect(() => {
+    if (!signedIn || !syncSettled) return
+    const key = `${auth.user.id}:${cloudName}`
+    if (nameCheckedFor.current === key) return
+    nameCheckedFor.current = key
+    if (cloudName) {
+      if (cloudName !== state.userName) setState({ userName: cloudName })
+    } else if (state.userName) {
+      auth.updateName(state.userName)
+    } else if (state.onboarded !== false) {
+      setModal((m) => m ?? 'profileName')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signedIn, syncSettled, cloudName])
 
   // Hover preview state
   const [hoverDate, setHoverDate] = useState(null)
@@ -93,9 +125,6 @@ export default function App() {
   // Undo
   const [undoItem, setUndoItem] = useState(null)
   const undoTimerRef = useRef(null)
-
-  // First-time setup
-  const [firstTimeSetupOpen, setFirstTimeSetupOpen] = useState(() => !localStorage.getItem(STORAGE_KEY))
 
   // Urgent alert dismiss
   const [urgentDismissed, setUrgentDismissed] = useState(false)
@@ -446,17 +475,30 @@ export default function App() {
   const saveGrade = (grade) => setState((prev) => ({ ...prev, grades: [...(prev.grades || []), grade] }))
   const saveReview = (review) => setState((prev) => ({ ...prev, weeklyReviews: { ...(prev.weeklyReviews || {}), [weekStart()]: review } }))
 
-  // ── FIRST-TIME SETUP ─────────────────────────────────────────────────────
-  const completeFirstTimeSetup = (date) => {
-    setState((prev) => ({ ...prev, targetDate: date }))
-    setFirstTimeSetupOpen(false)
-    showToast('Welcome to What-TO-DO')
+  // ── ONBOARDING & NAME ────────────────────────────────────────────────────
+  // Saves the name on this device and, when signed in, on the account too.
+  // Returns the Supabase result so callers can show its error.
+  const saveName = async (name) => {
+    const clean = name.trim()
+    if (signedIn) {
+      const res = await auth.updateName(clean)
+      if (res.error) return res
+    }
+    setState({ userName: clean })
+    return {}
   }
 
-  const saveUserName = (name) => {
-    setState({ userName: name.trim() })
+  const saveUserName = async (name) => {
+    const res = await saveName(name)
+    if (res.error) { showToast('Could not save your name', 'err'); return }
     close()
-    showToast(name.trim() ? 'Name updated ✓' : 'Name cleared')
+    showToast('Name updated ✓')
+  }
+
+  const completeOnboarding = (date, name) => {
+    setState((prev) => ({ ...prev, targetDate: date, userName: name.trim(), onboarded: true }))
+    if (signedIn) auth.updateName(name)
+    showToast(`Welcome, ${name.trim().split(/\s+/)[0]}`)
   }
 
   // ── RENDER ───────────────────────────────────────────────────────────────
@@ -497,12 +539,15 @@ export default function App() {
 
   return (
     <div className="app-container flex flex-row h-screen bg-zinc-950 text-white font-sans overflow-hidden">
-      {firstTimeSetupOpen && <FirstTimeSetup initialName={state.userName} onComplete={(date, name) => {
-        setState((prev) => ({ ...prev, targetDate: date, userName: name.trim() }))
-        setFirstTimeSetupOpen(false)
-        showToast('Welcome to What-TO-DO')
-      }} />}
-      {intro && !firstTimeSetupOpen && (
+      {needsOnboarding && (
+        <FirstTimeSetup
+          initialName={displayName}
+          signedInEmail={auth.user?.email}
+          onSignIn={auth.configured && !signedIn ? () => openSignIn('signin') : undefined}
+          onComplete={completeOnboarding}
+        />
+      )}
+      {intro && !needsOnboarding && state.onboarded !== false && (
         <IntroScreen targetDate={state.targetDate} remaining={remaining} onContinue={() => setIntro(false)} />
       )}
 
@@ -537,126 +582,26 @@ export default function App() {
         }}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden bg-zinc-950">
-        {/* Header */}
-        <div className="header-nav flex items-center justify-between px-9 h-[76px] border-b border-zinc-800 flex-shrink-0 bg-zinc-900">
-          <div className="flex items-center gap-[18px] flex-1 min-w-0 basis-0">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Open navigation menu"
-              className="mobile-hamburger hidden bg-zinc-800 border border-zinc-600 text-white cursor-pointer rounded-lg px-3.5 py-2.5 text-xl transition-all duration-150"
-            >
-              ☰
-            </button>
-
-            <button
-              onClick={() => { if (view === 'micro') navM(-1); else setCalY((y) => y - 1) }}
-              aria-label={view === 'micro' ? 'Previous month' : 'Previous year'}
-              className="font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white cursor-pointer rounded-lg px-5 py-2.5 text-lg transition-all duration-150 font-bold"
-            >
-              ◀
-            </button>
-
-            <div className="calendar-heading flex-1 min-w-0 text-center">
-              <h1 className="calendar-title font-sans font-black text-2xl tracking-[0.3em] text-white truncate">
-                {view === 'macro' ? `${calY} OVERVIEW` : `${MONTHS[calM].toUpperCase()} ${calY}`}
-              </h1>
-              <p className="calendar-subtitle hidden sm:block font-sans text-[10px] text-zinc-500 tracking-[0.18em] uppercase mt-1">
-                {view === 'macro' ? 'Year at a glance' : 'Monthly focus'}
-              </p>
-            </div>
-
-            <button
-              onClick={() => { if (view === 'micro') navM(1); else setCalY((y) => y + 1) }}
-              aria-label={view === 'micro' ? 'Next month' : 'Next year'}
-              className="font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white cursor-pointer rounded-lg px-5 py-2.5 text-lg transition-all duration-150 font-bold"
-            >
-              ▶
-            </button>
-          </div>
-
-          <button
-            onClick={() => setModal('name')}
-            aria-label="Edit your name"
-            className="greeting-button hidden lg:flex flex-col items-start justify-center shrink-0 w-[clamp(130px,16vw,230px)] min-w-0 mr-4 px-4 py-2 rounded-xl border border-zinc-700 bg-zinc-950/70 hover:bg-zinc-800 hover:border-accent cursor-pointer text-left transition-all duration-150"
-          >
-            <span className="font-sans text-[10px] uppercase tracking-[0.22em] text-accent font-black">HELLO</span>
-            <span className="greeting-name block w-full min-w-0 truncate font-sans text-lg font-black text-white leading-tight" title={state.userName || 'there'}>{state.userName || 'there'}</span>
-          </button>
-
-          <div className="flex gap-3 items-center shrink-0">
-            <button
-              onClick={jumpToToday}
-              aria-label="Jump to today"
-              title="Jump to today"
-              className="today-button hidden sm:inline-flex font-sans bg-accent text-zinc-950 border border-accent cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-black transition-all duration-150"
-            >
-              TODAY
-            </button>
-            <div className="view-switch hidden md:flex items-center p-1 rounded-lg border border-zinc-700 bg-zinc-950/70" role="group" aria-label="Calendar view">
-              <button
-                onClick={() => setView('macro')}
-                aria-pressed={view === 'macro'}
-                className={`px-3 py-1.5 rounded-md border-none cursor-pointer font-sans text-[11px] font-black tracking-wide transition-colors ${view === 'macro' ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
-              >
-                YEAR
-              </button>
-              <button
-                onClick={() => setView('micro')}
-                aria-pressed={view === 'micro'}
-                className={`px-3 py-1.5 rounded-md border-none cursor-pointer font-sans text-[11px] font-black tracking-wide transition-colors ${view === 'micro' ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
-              >
-                MONTH
-              </button>
-            </div>
-            {view === 'micro' && (
-              <button
-                onClick={() => setView('macro')}
-                aria-label="Back to year view"
-                title="Back to year view"
-                className="font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 cursor-pointer rounded-lg px-[18px] py-2.5 text-xs tracking-wide font-bold transition-all duration-150"
-              >
-                ← YEAR
-              </button>
-            )}
-            {(
-              auth.user ? (
-                <button
-                  onClick={() => setModal('account')}
-                  title={`Signed in as ${auth.user.email}`}
-                  className={`${ACTION_BTN} inline-flex items-center gap-2`}
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full ${sync.status === 'error' ? 'bg-amber-400' : 'bg-green-500'}`}
-                    aria-hidden="true"
-                  />
-                  Account
-                </button>
-              ) : (
-                <button
-                  onClick={() => setModal('account')}
-                  title="Sign in to sync across your devices"
-                  className="sign-in-button font-sans bg-accent text-zinc-950 border border-accent hover:brightness-110 cursor-pointer rounded-lg px-4 py-2.5 text-xs tracking-wide font-black transition-all duration-150"
-                >
-                  Sign in
-                </button>
-              )
-            )}
-            <button onClick={() => exportToFile(state)} title="Export your data as a JSON backup" className={`${ACTION_BTN} hidden sm:inline-flex`}>Export</button>
-            <label title="Import data from a JSON backup" className={`${ACTION_BTN} hidden sm:inline-flex items-center`}>
-              Import<input type="file" accept=".json" onChange={handleImport} className="hidden" />
-            </label>
-            <button onClick={() => setModal('roadmap')} title="Weekly review and analytics" className={ACTION_BTN}>Review</button>
-            <button onClick={() => setPaletteOpen(true)} title="Command palette (⌘K)" className={ACTION_BTN}>Search</button>
-            <button
-              onClick={() => setDeleteAllWarning(true)}
-              title="Delete all data"
-              className="font-sans bg-red-950/40 border border-red-600/70 text-red-400 hover:bg-red-950 hover:text-red-300 cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-bold transition-all duration-150"
-            >
-              Clear all
-            </button>
-          </div>
-        </div>
+      <main className="app-main flex-1 flex flex-col overflow-hidden bg-zinc-950">
+        <AppHeader
+          view={view}
+          setView={setView}
+          calM={calM}
+          calY={calY}
+          onPrev={() => { if (view === 'micro') navM(-1); else setCalY((y) => y - 1) }}
+          onNext={() => { if (view === 'micro') navM(1); else setCalY((y) => y + 1) }}
+          onToday={jumpToToday}
+          onToggleMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onSearch={() => setPaletteOpen(true)}
+          account={{ configured: auth.configured, user: auth.user, name: displayName, email: auth.user?.email || '', syncStatus: sync.status }}
+          onOpenAccount={() => setModal(signedIn ? 'account' : 'name')}
+          onSignIn={() => openSignIn('signin')}
+          onSignOut={async () => { await auth.signOut(); showToast('Signed out · your data stays on this device') }}
+          onReview={() => setModal('roadmap')}
+          onExport={() => exportToFile(state)}
+          onImport={handleImport}
+          onClearAll={() => setDeleteAllWarning(true)}
+        />
 
         {/* Hint bar */}
         <div className="hint-bar px-9 py-2 bg-zinc-900 border-b border-zinc-800 flex-shrink-0">
@@ -759,8 +704,27 @@ export default function App() {
       {modal === 'name' && (
         <NameModal initial={state.userName} onClose={close} onSave={saveUserName} />
       )}
+      {modal === 'profileName' && (
+        <NameModal
+          initial=""
+          title="FINISH YOUR PROFILE"
+          description="What should we call you? Your name is saved to your account, so it shows up on every device."
+          cancelLabel="LATER"
+          onClose={close}
+          onSave={saveUserName}
+        />
+      )}
       {modal === 'roadmap' && <RoadmapModal state={state} onClose={close} onSaveGrade={saveGrade} onSaveReview={saveReview} />}
-      {modal === 'account' && <AccountModal auth={auth} syncStatus={sync.status} onClose={close} />}
+      {modal === 'account' && (
+        <AccountModal
+          auth={auth}
+          syncStatus={sync.status}
+          userName={displayName}
+          initialMode={accountMode}
+          onSaveName={saveName}
+          onClose={close}
+        />
+      )}
       {sync.conflict && <ConflictModal local={state} cloud={sync.conflict.cloud} onResolve={sync.resolveConflict} />}
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} actions={[
         { label: 'New task', shortcut: 'Ctrl+T', run: () => openTask() },
@@ -772,5 +736,3 @@ export default function App() {
     </div>
   )
 }
-
-const ACTION_BTN = 'font-sans bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-zinc-200 cursor-pointer rounded-lg px-3.5 py-2.5 text-xs tracking-wide font-bold transition-all duration-150'

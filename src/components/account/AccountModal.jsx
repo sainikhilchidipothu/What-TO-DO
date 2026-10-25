@@ -1,11 +1,12 @@
-// Sign-in / create-account and the signed-in account view. Only rendered when
-// Supabase is configured; the header button that opens it is hidden otherwise.
-// Modes: password sign-in, create account, email link, forgot password, and
-// "set a new password" after a reset link.
+// Sign-in / create-account and the signed-in profile view. The header menu
+// opens it; it also opens on its own after a password-reset or failed email
+// link. Modes: password sign-in, create account (asks for a name), email link,
+// forgot password, and "set a new password" after a reset link.
 
 import { useState } from 'react'
 import { ModalShell } from '../common/ModalShell.jsx'
-import { friendlyAuthError } from '../../hooks/useAuth.js'
+import { Avatar } from '../common/Avatar.jsx'
+import { friendlyAuthError, accountName } from '../../hooks/useAuth.js'
 
 const SYNC_LABEL = {
   idle: '',
@@ -15,20 +16,21 @@ const SYNC_LABEL = {
 }
 
 const INPUT = 'w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 text-white font-sans text-sm placeholder:text-zinc-600 focus:border-accent focus:outline-none transition-colors'
-const PRIMARY = 'w-full py-3 rounded-lg bg-accent text-zinc-950 hover:brightness-110 disabled:opacity-60 cursor-pointer font-sans text-[13px] font-black tracking-wide transition-all duration-150'
+const LABEL = 'block font-sans text-[11px] font-bold text-zinc-400 mb-1.5'
+const PRIMARY = 'w-full py-3 rounded-lg bg-accent text-zinc-950 hover:brightness-90 disabled:opacity-60 cursor-pointer font-sans text-[13px] font-black tracking-wide transition-all duration-150'
 const SECONDARY = 'w-full py-3 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 cursor-pointer font-sans text-[13px] font-bold tracking-wide transition-all duration-150'
-const LINK = 'bg-transparent border-none p-0 cursor-pointer font-sans text-xs text-accent hover:underline'
+const LINK = 'bg-transparent border-none p-0 cursor-pointer font-sans text-xs text-zinc-300 underline-offset-2 hover:text-white hover:underline'
 const MIN_PASSWORD = 6
+const MAX_NAME = 40
 
 const TABS = [
   { id: 'signin', label: 'Sign in' },
   { id: 'signup', label: 'Create account' },
-  { id: 'magic', label: 'Email link' },
 ]
 
 function Notice({ title, children }) {
   return (
-    <div className="rounded-xl border border-accent/40 bg-accent/5 p-5 text-center">
+    <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-5 text-center">
       <p className="font-sans text-sm text-white font-bold mb-1">{title}</p>
       <p className="font-sans text-[13px] text-zinc-400 leading-relaxed break-words">{children}</p>
     </div>
@@ -69,15 +71,101 @@ function SetPasswordForm({ auth, label, onDone }) {
   )
 }
 
-export function AccountModal({ auth, syncStatus, onClose }) {
+// ── Signed-in profile: name, email, sync, password, sign out ───────────────
+function ProfileView({ auth, syncStatus, userName, onSaveName, onClose }) {
   const { user } = auth
-  const [mode, setMode] = useState('signin') // signin | signup | magic | forgot
+  const savedName = accountName(user) || userName
+  const [name, setName] = useState(savedName)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [showSetPw, setShowSetPw] = useState(false)
+  const dirty = name.trim() !== savedName
+
+  const saveName = async (e) => {
+    e.preventDefault()
+    if (!name.trim()) return setError('Enter your name.')
+    setBusy(true)
+    setError('')
+    const res = await onSaveName(name)
+    setBusy(false)
+    if (res?.error) return setError(friendlyAuthError(res.error))
+    setSaved(true)
+  }
+
+  return (
+    <ModalShell onClose={onClose} width={440}>
+      <div className="flex items-center gap-4 mb-6">
+        <Avatar name={savedName} email={user.email} size="lg" />
+        <div className="min-w-0">
+          <h2 id="modal-title" className="font-sans text-xl font-black text-white truncate">{savedName || 'Your account'}</h2>
+          <p className="font-sans text-[13px] text-zinc-400 truncate">{user.email}</p>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        <form onSubmit={saveName}>
+          <label htmlFor="profile-name" className={LABEL}>Name</label>
+          <div className="flex gap-2">
+            <input
+              id="profile-name"
+              value={name}
+              onChange={(e) => { setName(e.target.value); setSaved(false) }}
+              placeholder="What should we call you?"
+              maxLength={MAX_NAME}
+              autoComplete="name"
+              className={INPUT}
+            />
+            <button
+              type="submit"
+              disabled={busy || !dirty}
+              className="shrink-0 px-4 rounded-lg bg-accent text-zinc-950 hover:brightness-90 disabled:opacity-40 disabled:cursor-default cursor-pointer font-sans text-xs font-black transition-all"
+            >
+              {busy ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+          {error && <p className="mt-2 font-sans text-xs text-red-400" role="alert">{error}</p>}
+          {saved && !dirty && <p className="mt-2 font-sans text-xs text-green-400">Name saved to your account.</p>}
+        </form>
+
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 flex items-center gap-3">
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 ${syncStatus === 'error' ? 'bg-amber-400' : syncStatus === 'syncing' ? 'bg-zinc-400 animate-pulse' : 'bg-green-500'}`}
+            aria-hidden="true"
+          />
+          <p className={`font-sans text-xs ${syncStatus === 'error' ? 'text-amber-400' : 'text-zinc-300'}`}>
+            {SYNC_LABEL[syncStatus] || 'Sync is on for this device'}
+          </p>
+        </div>
+
+        <div>
+          {showSetPw ? (
+            <SetPasswordForm auth={auth} label="Save password" />
+          ) : (
+            <button type="button" onClick={() => setShowSetPw(true)} className={LINK}>Set or change password</button>
+          )}
+        </div>
+
+        <div className="pt-1 border-t border-zinc-800">
+          <button onClick={async () => { await auth.signOut(); onClose() }} className={`${SECONDARY} mt-4`}>Sign out</button>
+          <p className="mt-2 font-sans text-[11px] text-zinc-500 leading-relaxed">
+            Signing out keeps your data on this device. It just stops syncing until you sign back in.
+          </p>
+        </div>
+      </div>
+    </ModalShell>
+  )
+}
+
+export function AccountModal({ auth, syncStatus, userName = '', onSaveName, onClose, initialMode = 'signin' }) {
+  const { user } = auth
+  const [mode, setMode] = useState(initialMode) // signin | signup | magic | forgot
+  const [name, setName] = useState(userName)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [sent, setSent] = useState('') // message shown after an email goes out
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(auth.urlError || '')
-  const [showSetPw, setShowSetPw] = useState(false)
 
   const switchMode = (m) => {
     setMode(m)
@@ -88,6 +176,7 @@ export function AccountModal({ auth, syncStatus, onClose }) {
 
   const submit = async (e) => {
     e.preventDefault()
+    if (mode === 'signup' && !name.trim()) return setError('Enter your name.')
     if (!email.trim()) return setError('Enter your email.')
     if ((mode === 'signin' || mode === 'signup') && !password) return setError('Enter your password.')
     if (mode === 'signup' && password.length < MIN_PASSWORD) return setError(`Password must be at least ${MIN_PASSWORD} characters.`)
@@ -101,7 +190,7 @@ export function AccountModal({ auth, syncStatus, onClose }) {
         if (err) throw err
         onClose()
       } else if (mode === 'signup') {
-        const { data, error: err } = await auth.signUp(email, password)
+        const { data, error: err } = await auth.signUp(email, password, name)
         if (err) throw err
         // Supabase returns a user with no identities when the email is already
         // registered (and confirm-email is on), instead of an error.
@@ -109,7 +198,7 @@ export function AccountModal({ auth, syncStatus, onClose }) {
           throw new Error('User already registered')
         }
         if (data?.session) onClose() // confirm-email is off: signed straight in
-        else setSent(`We sent a confirmation link to ${email.trim()}. Open it, then come back and sign in.`)
+        else setSent(`We sent a confirmation link to ${email.trim()}. Open it in this browser and you'll be signed in.`)
       } else if (mode === 'magic') {
         const { error: err } = await auth.signInWithEmail(email)
         if (err) throw err
@@ -158,34 +247,7 @@ export function AccountModal({ auth, syncStatus, onClose }) {
 
   // ── Signed in ───────────────────────────────────────────────────────────
   if (user) {
-    return (
-      <ModalShell onClose={onClose} width={440}>
-        <h2 id="modal-title" className="font-sans text-xl font-black text-white tracking-wide mb-1">Your account</h2>
-        <p className="font-sans text-[13px] text-zinc-400 mb-6 leading-relaxed">Your progress syncs across every device you sign in on.</p>
-        <div className="space-y-4">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-            <div className="font-sans text-[10px] uppercase tracking-[0.2em] text-accent font-black mb-1">Signed in as</div>
-            <div className="font-sans text-sm text-white font-bold break-all">{user.email}</div>
-            {SYNC_LABEL[syncStatus] && (
-              <div className={`mt-2 font-sans text-xs ${syncStatus === 'error' ? 'text-amber-400' : 'text-zinc-500'}`}>
-                {SYNC_LABEL[syncStatus]}
-              </div>
-            )}
-          </div>
-
-          {showSetPw ? (
-            <SetPasswordForm auth={auth} label="Save password" />
-          ) : (
-            <button type="button" onClick={() => setShowSetPw(true)} className={LINK}>Set or change password</button>
-          )}
-
-          <button onClick={async () => { await auth.signOut(); onClose() }} className={SECONDARY}>Sign out</button>
-          <p className="font-sans text-[11px] text-zinc-600 leading-relaxed">
-            Signing out keeps your data on this device. It just stops syncing until you sign back in.
-          </p>
-        </div>
-      </ModalShell>
-    )
+    return <ProfileView auth={auth} syncStatus={syncStatus} userName={userName} onSaveName={onSaveName} onClose={onClose} />
   }
 
   // ── Signed out ──────────────────────────────────────────────────────────
@@ -193,20 +255,28 @@ export function AccountModal({ auth, syncStatus, onClose }) {
   const submitLabel = {
     signin: busy ? 'Signing in…' : 'Sign in',
     signup: busy ? 'Creating account…' : 'Create account',
-    magic: busy ? 'Sending…' : 'Send sign-in link',
+    magic: busy ? 'Sending…' : 'Email me a sign-in link',
     forgot: busy ? 'Sending…' : 'Send reset link',
+  }[mode]
+  const heading = {
+    signin: 'Welcome back',
+    signup: 'Create your account',
+    magic: 'Sign in with an email link',
+    forgot: 'Reset your password',
+  }[mode]
+  const blurb = {
+    signin: 'Sign in to sync your goals, tasks, and journal across devices.',
+    signup: 'Your progress will sync to every device you sign in on. Everything still works offline.',
+    magic: 'No password needed. We email you a link; a new email gets an account automatically.',
+    forgot: "Enter your account email and we'll send you a link to choose a new password.",
   }[mode]
 
   return (
-    <ModalShell onClose={onClose} width={440}>
-      <h2 id="modal-title" className="font-sans text-xl font-black text-white tracking-wide mb-1">
-        {mode === 'forgot' ? 'Reset password' : mode === 'signup' ? 'Create your account' : 'Sign in'}
-      </h2>
-      <p className="font-sans text-[13px] text-zinc-400 mb-5 leading-relaxed">
-        Keep your goals, tasks, and journal in sync across devices. Everything keeps working offline either way.
-      </p>
+    <ModalShell onClose={onClose} width={420}>
+      <h2 id="modal-title" className="font-sans text-xl font-black text-white tracking-wide mb-1">{heading}</h2>
+      <p className="font-sans text-[13px] text-zinc-400 mb-5 leading-relaxed">{blurb}</p>
 
-      {mode !== 'forgot' && (
+      {usesPassword && !sent && (
         <div className="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-1 mb-5" role="tablist">
           {TABS.map((t) => (
             <button
@@ -215,7 +285,7 @@ export function AccountModal({ auth, syncStatus, onClose }) {
               role="tab"
               aria-selected={mode === t.id}
               onClick={() => switchMode(t.id)}
-              className={`flex-1 py-2 rounded-md border-none cursor-pointer font-sans text-[11px] font-black tracking-wide transition-colors ${mode === t.id ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
+              className={`flex-1 py-2 rounded-md border-none cursor-pointer font-sans text-xs font-bold transition-colors ${mode === t.id ? 'bg-zinc-700 text-white' : 'bg-transparent text-zinc-500 hover:text-zinc-200'}`}
             >
               {t.label}
             </button>
@@ -229,39 +299,58 @@ export function AccountModal({ auth, syncStatus, onClose }) {
           <button type="button" onClick={() => switchMode('signin')} className={SECONDARY}>Back to sign in</button>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-3" noValidate>
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            aria-label="Email address"
-            className={INPUT}
-          />
-          {usesPassword && (
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="auth-name" className={LABEL}>Name</label>
+              <input
+                id="auth-name"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="What should we call you?"
+                maxLength={MAX_NAME}
+                className={INPUT}
+              />
+            </div>
+          )}
+          <div>
+            <label htmlFor="auth-email" className={LABEL}>Email</label>
             <input
-              type="password"
-              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'signup' ? `Password (min ${MIN_PASSWORD} characters)` : 'Password'}
-              aria-label="Password"
+              id="auth-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
               className={INPUT}
             />
+          </div>
+          {usesPassword && (
+            <div>
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="auth-password" className={LABEL}>Password</label>
+                {mode === 'signin' && <button type="button" onClick={() => switchMode('forgot')} className={LINK}>Forgot?</button>}
+              </div>
+              <input
+                id="auth-password"
+                type="password"
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={mode === 'signup' ? `At least ${MIN_PASSWORD} characters` : ''}
+                className={INPUT}
+              />
+            </div>
           )}
           {error && <p className="font-sans text-xs text-red-400" role="alert">{error}</p>}
           <button type="submit" disabled={busy} className={PRIMARY}>{submitLabel}</button>
 
-          <div className="flex justify-between items-center pt-1">
-            {mode === 'signin' && <button type="button" onClick={() => switchMode('forgot')} className={LINK}>Forgot password?</button>}
-            {mode === 'forgot' && <button type="button" onClick={() => switchMode('signin')} className={LINK}>Back to sign in</button>}
+          <div className="flex justify-center pt-1">
+            {usesPassword
+              ? <button type="button" onClick={() => switchMode('magic')} className={LINK}>Email me a sign-in link instead</button>
+              : <button type="button" onClick={() => switchMode('signin')} className={LINK}>Back to sign in</button>}
           </div>
-          {mode === 'magic' && (
-            <p className="font-sans text-[11px] text-zinc-600 leading-relaxed">
-              No password needed. We email you a link; new emails get an account automatically.
-            </p>
-          )}
         </form>
       )}
     </ModalShell>

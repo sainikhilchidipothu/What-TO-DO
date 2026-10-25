@@ -338,15 +338,22 @@ export function InsightsModal({ state, onClose }) {
   )
 }
 
-export function NameModal({ initial, onClose, onSave }) {
+export function NameModal({
+  initial,
+  onClose,
+  onSave,
+  title = 'YOUR NAME',
+  description = 'This name appears in your account menu at the top right of the app.',
+  cancelLabel = 'CANCEL',
+}) {
   const [name, setName] = useState(initial || '')
   const canSave = name.trim().length > 0
 
   return (
     <ModalShell onClose={onClose}>
-      <MTitle>YOUR NAME</MTitle>
+      <MTitle>{title}</MTitle>
       <p className="font-sans text-sm text-zinc-300 leading-relaxed mb-4">
-        This name appears in your welcome message at the top of the app.
+        {description}
       </p>
       <MLabel htmlFor="user-name">NAME</MLabel>
       <input
@@ -360,7 +367,7 @@ export function NameModal({ initial, onClose, onSave }) {
         className={`${INPUT} text-base`}
       />
       <MRow className="mt-5">
-        <Btn onClick={onClose} variant="ghost">CANCEL</Btn>
+        <Btn onClick={onClose} variant="ghost">{cancelLabel}</Btn>
         <Btn onClick={() => onSave(name)} disabled={!canSave}>SAVE NAME</Btn>
       </MRow>
     </ModalShell>
@@ -368,7 +375,10 @@ export function NameModal({ initial, onClose, onSave }) {
 }
 
 // ─── First-time setup ────────────────────────────────────────────────────────
-export function FirstTimeSetup({ initialName, onComplete }) {
+// onSignIn is passed only when accounts are available; it lets someone with an
+// existing account skip setup and pull their data instead. signedInEmail is set
+// when they're already signed in to a brand-new (empty) account.
+export function FirstTimeSetup({ initialName, onComplete, onSignIn, signedInEmail }) {
   const [goalDate, setGoalDate] = useState('')
   const [name, setName] = useState(initialName || '')
 
@@ -377,17 +387,21 @@ export function FirstTimeSetup({ initialName, onComplete }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="first-time-title"
-      className="fixed inset-0 z-[200] bg-gradient-to-b from-zinc-950 to-black flex flex-col items-center justify-center p-5 overflow-auto"
+      className="fixed inset-0 z-[200] bg-gradient-to-b from-zinc-950 to-black flex flex-col items-center p-5 overflow-auto"
     >
-      <div className="max-w-[520px] w-full text-center">
+      {/* my-auto centers when it fits but keeps the top reachable when it doesn't. */}
+      <div className="max-w-[440px] w-full text-center my-auto py-4">
         <div className="text-[40px] mb-3" aria-hidden="true">🎯</div>
         <h1 id="first-time-title" className="font-sans text-2xl font-black tracking-wide text-white mb-2">
           WELCOME TO WHAT-TO-DO
         </h1>
         <p className="text-base text-zinc-300 leading-relaxed mb-5">
-          Let's get started! First, set your target goal date.<br />
-          This will help you track your progress and stay motivated.
+          Tell us your name and pick a target date.<br />
+          The countdown keeps you focused on what matters.
         </p>
+        {signedInEmail && (
+          <p className="font-sans text-xs text-zinc-500 -mt-2 mb-5">Signed in as {signedInEmail} · this setup syncs to your account</p>
+        )}
 
         <div className="mb-5 text-left">
           <MLabel htmlFor="setup-name">WHAT SHOULD WE CALL YOU?</MLabel>
@@ -423,6 +437,14 @@ export function FirstTimeSetup({ initialName, onComplete }) {
         >
           GET STARTED
         </button>
+        {onSignIn && (
+          <p className="mt-6 font-sans text-sm text-zinc-400">
+            Already have an account?{' '}
+            <button type="button" onClick={onSignIn} className="bg-transparent border-none p-0 cursor-pointer font-sans text-sm font-bold text-white underline underline-offset-4 hover:text-zinc-300">
+              Sign in
+            </button>
+          </p>
+        )}
       </div>
     </div>
   )

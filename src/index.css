@@ -60,47 +60,11 @@
   animation: blink 2s ease-in-out infinite;
 }
 
-.greeting-button {
-  box-shadow: none;
-}
-
-.greeting-button:hover {
-  box-shadow: none;
-}
-
-.greeting-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .header-nav {
   background: #18181b;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   z-index: 5;
-  gap: 16px;
-}
-
-.header-nav button,
-.header-nav label {
-  min-height: 42px;
-}
-
-.today-button {
-  box-shadow: none;
-  background: #f4f4f5 !important;
-  border-color: #f4f4f5 !important;
-}
-
-.today-button:hover {
-  background: #d4d4d8 !important;
-  transform: none;
-  box-shadow: none;
-}
-
-.calendar-subtitle {
-  line-height: 1;
 }
 
 .sidebar {
@@ -124,26 +88,6 @@
 .main-content > * {
   max-width: 1440px;
   margin-inline: auto;
-}
-
-.header-nav > div:first-child {
-  max-width: 760px;
-}
-
-.calendar-title {
-  letter-spacing: 0.16em !important;
-  font-size: 21px !important;
-}
-
-.greeting-button {
-  margin-right: 0;
-  border-color: #3f3f46;
-  background: #18181b;
-}
-
-.greeting-button:hover {
-  border-color: #71717a;
-  background: #27272a;
 }
 
 .macro-grid {
@@ -247,6 +191,12 @@
     min-height: 100vh;
   }
 
+  /* overflow-hidden ancestors would stop the header from sticking. */
+  .app-container,
+  .app-main {
+    overflow: visible !important;
+  }
+
   .sidebar {
     width: 100% !important;
     min-width: 0 !important;
@@ -268,30 +218,20 @@
   }
 
   .calendar-title {
-    min-width: 0 !important;
-    font-size: 16px !important;
-    letter-spacing: 2px !important;
-  }
-
-  .header-nav > .greeting-button {
-    display: none !important;
+    font-size: 17px !important;
   }
 
   .main-content {
     padding: 16px !important;
   }
 
+  /* The page scrolls on mobile, so keep the bar pinned to the top. */
   .header-nav {
-    padding: 0 12px !important;
-    height: 60px !important;
-    gap: 8px;
-  }
-
-  .header-nav > div:first-child {
-    gap: 8px !important;
-  }
-
-  .header-nav > div:last-child {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding: 0 10px !important;
+    height: 56px !important;
     gap: 6px !important;
   }
 
@@ -302,13 +242,7 @@
 
   @media (max-width: 600px) {
     .calendar-title {
-      font-size: 14px !important;
-      letter-spacing: 0.12em !important;
-    }
-
-    .header-nav > div:last-child > button {
-      padding-left: 9px !important;
-      padding-right: 9px !important;
+      font-size: 15px !important;
     }
 
     .main-content {

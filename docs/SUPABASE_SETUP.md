@@ -118,6 +118,14 @@ build time, so a rebuild is required after changing them.)
 
 ## How sync behaves
 
+- **Signing up:** the create-account form asks for a name, which is stored on
+  the Supabase user as `full_name` metadata (no extra table needed). That name
+  appears in the header's account menu on every device. Users can change it
+  under **Profile & account**. Accounts without a name pick up the one already
+  on the device, or get asked for one once.
+- **New device:** the welcome setup offers **Already have an account? Sign in**,
+  so returning users pull their data instead of starting over. Setup is skipped
+  when the account already has data.
 - **Signed out:** everything stays in `localStorage` on that device, as today.
 - **First sign-in on a fresh device:** your cloud data loads in.
 - **First sign-in on a device that already has local data** *and* the account

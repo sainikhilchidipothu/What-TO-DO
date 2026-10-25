@@ -44,3 +44,15 @@ describe('mergeStates', () => {
     expect(mergeStates(null, only)).toBe(only)
   })
 })
+
+describe('mergeStates onboarding flag', () => {
+  it('stays onboarded if either side finished setup', () => {
+    expect(mergeStates({ onboarded: false }, { onboarded: true }).onboarded).toBe(true)
+    expect(mergeStates({ onboarded: true }, { onboarded: false }).onboarded).toBe(true)
+    // Cloud rows saved before the flag existed count as set up.
+    expect(mergeStates({ onboarded: false }, {}).onboarded).toBe(true)
+  })
+  it('is only false when neither side finished setup', () => {
+    expect(mergeStates({ onboarded: false }, { onboarded: false }).onboarded).toBe(false)
+  })
+})
