@@ -619,7 +619,7 @@ export default function App() {
                 ← YEAR
               </button>
             )}
-            {auth.configured && (
+            {(
               auth.user ? (
                 <button
                   onClick={() => setModal('account')}

@@ -52,6 +52,9 @@ create policy "update own state"
   on public.user_state for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- Let signed-in users reach the table through the API.
+grant select, insert, update on public.user_state to authenticated;
 ```
 
 > RLS is what makes the public anon key safe: even though anyone can call the

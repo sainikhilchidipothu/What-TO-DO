@@ -126,6 +126,25 @@ export function AccountModal({ auth, syncStatus, onClose }) {
     }
   }
 
+  // ── Supabase keys missing from this build ───────────────────────────────
+  if (!auth.configured) {
+    return (
+      <ModalShell onClose={onClose} width={440}>
+        <h2 id="modal-title" className="font-sans text-xl font-black text-white tracking-wide mb-1">Sign-in isn't set up yet</h2>
+        <p className="font-sans text-[13px] text-zinc-400 mb-4 leading-relaxed">
+          This build of the app doesn't have its Supabase keys, so accounts are turned off. Your data is still saved on this device.
+        </p>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 font-sans text-[12px] text-zinc-300 leading-relaxed space-y-2">
+          <p>Add these two variables, then rebuild:</p>
+          <p className="font-mono text-accent break-all">VITE_SUPABASE_URL<br />VITE_SUPABASE_ANON_KEY</p>
+          <p><span className="text-white font-bold">Running locally:</span> put them in <span className="font-mono">.env.local</span> in the project folder and restart <span className="font-mono">npm run dev</span>.</p>
+          <p><span className="text-white font-bold">On Vercel:</span> Settings → Environment Variables, then redeploy.</p>
+        </div>
+        <button type="button" onClick={onClose} className={`${SECONDARY} mt-4`}>Close</button>
+      </ModalShell>
+    )
+  }
+
   // ── Arrived from a password-reset link ──────────────────────────────────
   if (user && auth.recovering) {
     return (
