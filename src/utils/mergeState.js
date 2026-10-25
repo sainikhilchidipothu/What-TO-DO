@@ -44,3 +44,49 @@ export function isEmptyState(s) {
   const hasObject = objects.some((k) => s[k] && Object.keys(s[k]).length > 0)
   return !hasArray && !hasObject && !s.userName
 }
+
+/**
+ * JSON with object keys sorted, so two equal states always produce the same
+ * string. Postgres jsonb reorders keys, which made a plain JSON.stringify
+ * comparison report a cloud copy as different from an identical local one.
+ */
+export function stableStringify(value) {
+  return JSON.stringify(value, (_key, v) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.keys(v).sort().reduce((acc, k) => { acc[k] = v[k]; return acc }, {})
+      : v,
+  )
+}
+
+/** Short fingerprint of a state, for remembering what was last synced. */
+export function stateFingerprint(state) {
+  const str = stableStringify(state)
+  let h = 0x811c9dc5 // FNV-1a
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return `${str.length}:${(h >>> 0).toString(36)}`
+}
+
+/**
+ * Decide what to do when a signed-in device first talks to the cloud. Both
+ * states must already be normalized. meta is { userId, fingerprint } from the
+ * device's last successful sync, or null.
+ *   seed  – account has no cloud row yet: upload this device
+ *   adopt – take the cloud copy (nothing local worth keeping, or no local edits)
+ *   push  – cloud is unchanged since the last sync: upload this device's edits
+ *   merge – same account, both sides changed since the last sync: combine
+ *   ask   – this device's data was never synced with this account: let the user choose
+ */
+export function reconcileAction({ local, cloud, meta, userId }) {
+  if (!cloud) return 'seed'
+  const localFp = stateFingerprint(local)
+  if (isEmptyState(local) || localFp === stateFingerprint(cloud)) return 'adopt'
+  if (meta?.userId === userId) {
+    if (localFp === meta.fingerprint) return 'adopt'
+    if (stateFingerprint(cloud) === meta.fingerprint) return 'push'
+    return 'merge'
+  }
+  return 'ask'
+}

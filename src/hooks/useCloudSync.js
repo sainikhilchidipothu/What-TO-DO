@@ -1,13 +1,15 @@
 // Keeps localStorage (via useAppState) in step with the user's cloud row.
 // localStorage is always the working copy; the cloud only engages when signed
-// in. lastSyncedJson holds the state we last pushed or pulled so we only push
-// real changes and don't bounce a pulled update straight back up. If a device
-// with data signs into an account that also has data, we ask the user how to
-// reconcile instead of overwriting either side.
+// in. lastSyncedJson holds the state we last pushed or pulled (as key-sorted
+// JSON) so we only push real changes and don't bounce a pulled update straight
+// back up. The device also remembers which account it last synced with, so
+// reopening the app reconciles quietly; we only ask the user how to combine
+// data when a device's existing data has never been synced with this account.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { fetchCloudState, pushCloudState } from '../lib/cloud.js'
-import { isEmptyState, mergeStates } from '../utils/mergeState.js'
+import { mergeStates, reconcileAction, stableStringify, stateFingerprint } from '../utils/mergeState.js'
+import { normalizeState, loadSyncMeta, saveSyncMeta } from '../utils/storage.js'
 
 const PUSH_DEBOUNCE_MS = 1500
 
@@ -19,11 +21,18 @@ export function useCloudSync({ configured, user, state, setState }) {
   const [reconciled, setReconciled] = useState(false) // render-visible mirror of ready
   const pushTimer = useRef(null)
 
+  // Record that this device and the cloud now hold `synced` for this user.
+  const markSynced = useCallback((userId, synced) => {
+    lastSyncedJson.current = stableStringify(synced)
+    saveSyncMeta(userId, stateFingerprint(synced))
+  }, [])
+
   // Replace local state with a cloud snapshot without triggering a push back.
-  const applyRemote = useCallback((remote) => {
-    lastSyncedJson.current = JSON.stringify(remote)
-    setState(() => remote)
-  }, [setState])
+  const applyRemote = useCallback((userId, remote) => {
+    const next = normalizeState(remote)
+    markSynced(userId, next)
+    setState(() => next)
+  }, [setState, markSynced])
 
   // ── Initial reconcile when a user signs in ───────────────────────────────
   useEffect(() => {
@@ -40,22 +49,24 @@ export function useCloudSync({ configured, user, state, setState }) {
     setStatus('syncing')
     ;(async () => {
       try {
-        const cloud = await fetchCloudState(user.id)
+        const raw = await fetchCloudState(user.id)
         if (cancelled) return
-        if (!cloud) {
-          // No cloud row yet — seed it from this device.
-          await pushCloudState(user.id, state)
-          lastSyncedJson.current = JSON.stringify(state)
-          ready.current = true
-          setReconciled(true)
-        } else if (isEmptyState(state) || JSON.stringify(state) === JSON.stringify(cloud)) {
-          // Nothing local worth keeping (or already identical): adopt cloud.
-          applyRemote(cloud)
-          ready.current = true
-          setReconciled(true)
-        } else {
-          // Both sides have distinct data — let the user decide.
+        const cloud = raw && normalizeState(raw)
+        const action = reconcileAction({ local: state, cloud, meta: loadSyncMeta(), userId: user.id })
+        if (action === 'ask') {
+          // This device's data never synced with this account — let the user decide.
           setConflict({ cloud })
+        } else {
+          if (action === 'adopt') applyRemote(user.id, cloud)
+          else {
+            const next = action === 'merge' ? mergeStates(state, cloud) : state // seed | push
+            await pushCloudState(user.id, next)
+            if (cancelled) return
+            if (next !== state) setState(() => next)
+            markSynced(user.id, next)
+          }
+          ready.current = true
+          setReconciled(true)
         }
         if (!cancelled) setStatus('synced')
       } catch (e) {
@@ -75,14 +86,13 @@ export function useCloudSync({ configured, user, state, setState }) {
   // ── Push local edits (debounced) ─────────────────────────────────────────
   useEffect(() => {
     if (!configured || !user || !ready.current || conflict) return
-    const json = JSON.stringify(state)
-    if (json === lastSyncedJson.current) return
+    if (stableStringify(state) === lastSyncedJson.current) return
     clearTimeout(pushTimer.current)
     pushTimer.current = setTimeout(async () => {
       try {
         setStatus('syncing')
         await pushCloudState(user.id, state)
-        lastSyncedJson.current = json
+        markSynced(user.id, state)
         setStatus('synced')
       } catch (e) {
         console.warn('Cloud push failed:', e)
@@ -99,11 +109,12 @@ export function useCloudSync({ configured, user, state, setState }) {
     const onFocus = async () => {
       if (!ready.current || conflict) return
       try {
-        const cloud = await fetchCloudState(user.id)
-        if (!cloud) return
-        const cloudJson = JSON.stringify(cloud)
-        if (cloudJson !== lastSyncedJson.current && cloudJson !== JSON.stringify(state)) {
-          applyRemote(cloud)
+        const raw = await fetchCloudState(user.id)
+        if (!raw) return
+        const cloud = normalizeState(raw)
+        const cloudJson = stableStringify(cloud)
+        if (cloudJson !== lastSyncedJson.current && cloudJson !== stableStringify(state)) {
+          applyRemote(user.id, cloud)
         }
       } catch {
         /* offline or transient — keep working locally */
@@ -123,11 +134,8 @@ export function useCloudSync({ configured, user, state, setState }) {
     setConflict(null)
     try {
       setStatus('syncing')
-      applyRemote(resolved)
-      if (choice !== 'cloud') {
-        await pushCloudState(user.id, resolved)
-        lastSyncedJson.current = JSON.stringify(resolved)
-      }
+      if (choice !== 'cloud') await pushCloudState(user.id, resolved)
+      applyRemote(user.id, resolved)
       ready.current = true
       setReconciled(true)
       setStatus('synced')

@@ -131,6 +131,9 @@ build time, so a rebuild is required after changing them.)
 - **First sign-in on a device that already has local data** *and* the account
   already has cloud data: you're asked once whether to **combine both**, **use
   the account copy**, or **use this device** — nothing is overwritten silently.
+  The device then remembers it syncs with that account, so reopening the app
+  never asks again. Offline edits are uploaded on the next visit, and if both
+  sides changed in the meantime they're combined automatically.
 - **Ongoing:** local edits push up (debounced ~1.5s); returning focus to a tab
   pulls down anything changed on another device.
 - **Offline:** edits save locally and sync the next time you're online. The
