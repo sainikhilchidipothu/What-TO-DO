@@ -71,6 +71,15 @@ export default function App() {
   const [editCId, setEditCId] = useState(null)
   const [jDate, setJDate] = useState(todayKey())
 
+  // Open the account modal on its own when the user lands here from a
+  // password-reset link, or from an email link that failed (expired etc.).
+  useEffect(() => {
+    if (auth.recovering || auth.urlError) {
+      setIntro(false)
+      setModal('account')
+    }
+  }, [auth.recovering, auth.urlError])
+
   // Hover preview state
   const [hoverDate, setHoverDate] = useState(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })

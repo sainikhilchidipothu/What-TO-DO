@@ -9,6 +9,12 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const isSupabaseConfigured = Boolean(url && anonKey)
 
+if (!isSupabaseConfigured) {
+  // Without these the Sign in button is hidden entirely. On Vercel, add both
+  // vars under Settings → Environment Variables and redeploy.
+  console.info('[What-TO-DO] Sign-in disabled: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set at build time.')
+}
+
 export const supabase = isSupabaseConfigured
   ? createClient(url, anonKey, {
       auth: {

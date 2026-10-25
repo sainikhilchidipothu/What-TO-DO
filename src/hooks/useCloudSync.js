@@ -60,9 +60,11 @@ export function useCloudSync({ configured, user, state, setState }) {
       }
     })()
     return () => { cancelled = true }
-    // Reconcile is tied to the identity change, not to every edit.
+    // Reconcile is tied to the identity change, not to every edit. Keyed on the
+    // user id: Supabase hands back a new user object on every token refresh,
+    // which would otherwise re-run this and can pop the conflict dialog.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configured, user])
+  }, [configured, user?.id])
 
   // ── Push local edits (debounced) ─────────────────────────────────────────
   useEffect(() => {
@@ -82,7 +84,8 @@ export function useCloudSync({ configured, user, state, setState }) {
       }
     }, PUSH_DEBOUNCE_MS)
     return () => clearTimeout(pushTimer.current)
-  }, [state, configured, user, conflict])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, configured, user?.id, conflict])
 
   // ── Pull on focus to pick up edits made on another device ────────────────
   useEffect(() => {

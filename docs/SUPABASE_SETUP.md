@@ -58,13 +58,27 @@ create policy "update own state"
 > API, a request can only ever touch the row whose `user_id` matches the
 > signed-in user.
 
-## 4. Turn on email magic links
+## 4. Turn on email sign-in
 
-**Authentication → Providers → Email**: make sure **Email** is enabled. For the
-magic-link flow you can leave "Confirm email" on; a password is not required.
+The app supports **email + password** (sign in / create account / forgot
+password) and **email magic links**.
 
-**Authentication → URL Configuration**: add your app's URLs to **Redirect URLs**
-so the magic link returns to the app:
+**Authentication → Providers → Email**: make sure **Email** is enabled.
+
+- **Confirm email ON:** new accounts get a confirmation email and can sign in
+  only after clicking it.
+- **Confirm email OFF:** new accounts are signed in right away.
+
+**Adding users yourself:** in **Authentication → Users → Add user → Create new
+user**, enter an email and password and tick **Auto Confirm User**. Without
+that tick, the login fails with "email not confirmed".
+
+**Authentication → URL Configuration**:
+
+- Set **Site URL** to your live app (`https://what-to-do-nu.vercel.app`). If it
+  is left at the default `http://localhost:3000`, every email link sends people
+  to a dead localhost page.
+- Add your app's URLs to **Redirect URLs** so email links return to the app:
 
 - `http://localhost:5173` (local dev)
 - `https://what-to-do-nu.vercel.app` (and any custom domain)
